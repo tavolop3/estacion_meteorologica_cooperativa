@@ -1,23 +1,12 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
-
-// 1. Datos de la Red WiFi
-const char* WIFI_SSID = "AFIP 2.4GHz";
-const char* WIFI_PASS = "v3r0n1c4d5";
-
-// 2. Datos del Servidor MQTT
-const char* MQTT_BROKER = "broker.hivemq.com";
-const int MQTT_PORT = 1883;
-
-#define ESTACION_ID "casa_mati" 
-#define LATITUD -34.9214          
-#define LONGITUD -57.9545         
+#include "config.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
-const int MSG_INTERVAL = 30000;
+const int MSG_INTERVAL = 2000;
 
 void setup_wifi() {
     delay(10);
@@ -38,19 +27,18 @@ void setup_wifi() {
     Serial.println(WiFi.localIP());
 }
 
-// --- Función para Reconectar al Broker MQTT ---
 void reconnect() {
     while (!client.connected()) {
         Serial.print("Intentando conexión MQTT...");
-    if (client.connect(ESTACION_ID)) {
-        Serial.println("conectado");
-    } else {
-        Serial.print("falló, rc=");
-        Serial.print(client.state());
-        Serial.println(" intentando de nuevo en 5 segundos");
-        delay(5000);
+        if (client.connect(ESTACION_ID)) {
+            Serial.println("conectado");
+        } else {
+            Serial.print("falló, rc=");
+            Serial.print(client.state());
+            Serial.println(" intentando de nuevo en 5 segundos");
+            delay(5000);
+        }
     }
-  }
 }
 
 void publicarDatosSensor() {
@@ -80,7 +68,6 @@ void setup() {
     setup_wifi();
     client.setServer(MQTT_BROKER, MQTT_PORT);
 }
-
 
 void loop() {
     if (!client.connected()) {
