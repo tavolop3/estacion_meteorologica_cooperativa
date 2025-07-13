@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <ArduinoJson.h>
 #include "config.h"
+#include <tinycbor.h>
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -45,22 +45,36 @@ void publicarDatosSensor() {
     float temperatura = random(10, 40);
     float humedad = random(0, 100);
 
-    JsonDocument jsonDoc;
-    jsonDoc["station_id"] = ESTACION_ID;
-    jsonDoc["temperatura"] = temperatura;
-    jsonDoc["humedad"] = humedad;
+    uint8_t buffer[256]; // CBOR buffer
+    CborEncoder encoder, mapEncoder, locEncoder;
 
-    JsonObject location = jsonDoc["ubicacion"].to<JsonObject>();
-    location["lat"] = LATITUD;
-    location["lon"] = LONGITUD;
+    cbor_encoder_init(&encoder, buffer, sizeof(buffer), 0);
+    
+    // mapa principal
+    cbor_encoder_create_map(&encoder, &mapEncoder, 4); // 4 claves
 
-    char buffer[256];
-    size_t n = serializeJson(jsonDoc, buffer);
+    cbor_encode_text_stringz(&mapEncoder, "station_id");
+    cbor_encode_text_stringz(&mapEncoder, ESTACION_ID);
 
-    client.publish("barrio/estaciones/datos", buffer, n);
+    cbor_encode_text_stringz(&mapEncoder, "temperatura");
+    cbor_encode_float(&mapEncoder, temperatura);
 
-    Serial.print("Publicando mensaje: ");
-    Serial.println(buffer);
+    cbor_encode_text_stringz(&mapEncoder, "humedad");
+    cbor_encode_float(&mapEncoder, humedad);
+
+    cbor_encode_text_stringz(&mapEncoder, "ubicacion");
+    cbor_encoder_create_map(&mapEncoder, &locEncoder, 2);
+    cbor_encode_text_stringz(&locEncoder, "lat");
+    cbor_encode_float(&locEncoder, LATITUD);
+    cbor_encode_text_stringz(&locEncoder, "lon");
+    cbor_encode_float(&locEncoder, LONGITUD);
+    cbor_encoder_close_container(&mapEncoder, &locEncoder);
+
+    cbor_encoder_close_container(&encoder, &mapEncoder);
+
+    size_t encodedLength = cbor_encoder_get_buffer_size(&encoder, buffer);
+
+    client.publish("barrio/estaciones/datos", buffer, encodedLength);
 }
 
 void setup() {
