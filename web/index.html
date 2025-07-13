@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Meteorológica Barrial Cooperativa</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="httpsd://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Red Meteorológica Barrial Cooperativa 🌦️</h1>
+            <p class="subtitle">Mide el clima de tu barrio en tiempo real y sé parte de una red ciudadana de datos abiertos.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="descripcion">
+            <h2>¿En qué consiste el Proyecto?</h2>
+            <p>Nuestra red es una iniciativa comunitaria para crear un mapa meteorológico detallado y en tiempo real de nuestro barrio. Utilizamos tecnología accesible como el ESP32 para que cualquier vecino pueda construir su propia estación (nodo), medir variables como <strong>temperatura, humedad y presión</strong>, y compartir los datos de forma automática con un servidor central. El objetivo es simple: tener datos climáticos precisos, abiertos y generados por nosotros mismos.</p>
+        </section>
+
+        <hr>
+
+        <section id="arquitectura">
+            <h2>¿Cómo Funciona? ⚙️</h2>
+            <p>La arquitectura del sistema es simple y robusta, diseñada para ser escalable y fácil de mantener. Se compone de dos partes principales: los nodos cliente y el nodo central.</p>
+            <div class="cards-container">
+                <div class="card">
+                    <h3>1. Nodos Cliente (Tu Estación)</h3>
+                    <p>Cada estación meteorológica es un "nodo cliente". Está construida con un microcontrolador <strong>ESP32</strong> y sensores. Su única tarea es recolectar datos y enviarlos de forma segura a nuestro servidor a través de Wi-Fi usando el protocolo <strong>MQTT</strong>.</p>
+                </div>
+                <div class="card">
+                    <h3>2. Nodo Central (Nuestro Servidor)</h3>
+                    <p>El servidor recibe y orquesta todos los datos. Un <strong>Broker MQTT</strong> actúa como receptor. Luego, <strong>Node-RED</strong> procesa y estandariza la información para almacenarla en la base de datos <strong>InfluxDB</strong>, que está optimizada para series temporales. Finalmente, ¡la magia ocurre!</p>
+                </div>
+                <div class="card">
+                    <h3>3. Visualización (El Dashboard)</h3>
+                    <p><strong>Grafana</strong> se conecta a la base de datos y transforma los números en información útil. Crea gráficos, mapas de calor y tablas que se muestran en un dashboard público. Así, todos podemos ver el estado del clima en el barrio de un solo vistazo.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="como-sumarse">
+            <h2>¡Quiero Sumarme! ¿Cómo Empiezo?</h2>
+            <p>¡Excelente! Unirte al proyecto es más fácil de lo que crees. Solo necesitas ganas de aprender y algunos componentes electrónicos básicos. Hemos preparado una guía completa con todo lo que necesitas.</p>
+            <div class="pasos">
+                <div class="paso">
+                    <span class="numero">1</span>
+                    <p><strong>Reúne los componentes:</strong> Necesitarás un ESP32, sensores (como el BME280 o DHT22) y algunos cables. En nuestra guía encontrarás una lista detallada con enlaces de compra sugeridos.</p>
+                </div>
+                <div class="paso">
+                    <span class="numero">2</span>
+                    <p><strong>Monta tu estación:</strong> Sigue nuestros tutoriales paso a paso para ensamblar el hardware. ¡No necesitas ser un experto en electrónica!</p>
+                </div>
+                <div class="paso">
+                    <span class="numero">3</span>
+                    <p><strong>Carga el código:</strong> Te proporcionamos el código listo para cargar en tu ESP32. Solo tendrás que configurar tu red Wi-Fi y un identificador único para tu estación.</p>
+                </div>
+                <div class="paso">
+                    <span class="numero">4</span>
+                    <p><strong>¡Listo!</strong> Una vez encendida, tu estación comenzará a enviar datos automáticamente. Podrás ver tus mediciones en el dashboard general de la red.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="cta">
+            <p>Toda la documentación técnica, el código fuente y los tutoriales están disponibles en nuestro repositorio de GitHub.</p>
+            <a href="#" class="cta-button">Ver Guía y Código en GitHub</a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>
+        </div>
+    </footer>
+</body>
+</html>
