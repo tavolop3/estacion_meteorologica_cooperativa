@@ -15,4 +15,7 @@
 #define LONGITUD -57.9545
 #define LOCALIDAD "TOLOSA"
 
+// Clave que dio la página web
+#define CLAVE 1
+
 #endif

@@ -1,1 +1,448 @@
-[{"id":"2a0199abf9aac834","type":"tab","label":"Flujo 1","disabled":false,"info":"","env":[]},{"id":"4efae75820d33ed9","type":"mqtt in","z":"2a0199abf9aac834","name":"","topic":"barrio/estaciones/#","qos":"2","datatype":"auto-detect","broker":"57a306eb47001b96","nl":false,"rap":true,"rh":0,"inputs":0,"x":190,"y":280,"wires":[["e47ff98f113b9352"]]},{"id":"d47846bbfea07eb5","type":"function","z":"2a0199abf9aac834","name":"formatear datos","func":"let datos = msg.payload;\n\nmsg.payload = [{\n    humidity: datos.humedad,\n    temperature: datos.temperatura,\n},\n{\n    lugar:\"La Plata\",\n    station_id: datos.station_id,\n    lat: parseFloat(datos.ubicacion.lat),\n    lon: parseFloat(datos.ubicacion.lon),\n    localidad: datos.localidad\n}];\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":800,"y":280,"wires":[["7af59be8107f0c5f","9908d5722245467a"]]},{"id":"fcfae9e7fe0529a2","type":"function","z":"2a0199abf9aac834","d":true,"name":"rate limiting","func":"// Almacenar tiempos de los últimos mensajes por cliente\nlet lastMessageTime = context.get('lastMessageTime') || {};\nlet stationId = msg.payload.station_id || 'default'; // Ajusta según tu estructura de mensaje\nlet currentTime = Date.now();\nlet rateLimitMs = 1000; // 1 mensaje por segundo\n\n// Verificar si ha pasado suficiente tiempo desde el último mensaje\nif (lastMessageTime[stationId] && (currentTime - lastMessageTime[stationId] < rateLimitMs)) {\n    // Descarta el mensaje si excede la tasa\n    node.error(\"Máximo 1 mensaje por segundo\")\n    return null;\n} else {\n    // Actualiza el tiempo del último mensaje\n    lastMessageTime[stationId] = currentTime;\n    context.set('lastMessageTime', lastMessageTime);\n    return msg; // Pasa el mensaje al siguiente nodo\n}","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":430,"y":220,"wires":[["d41c82790da26599"]]},{"id":"d41c82790da26599","type":"function","z":"2a0199abf9aac834","d":true,"name":"imprimir cant mensajes","func":"// Obtener el contador actual desde el contexto (o inicializar en 0)\nlet count = context.get('messageCount') || 0;\n\n// Incrementar el contador\ncount += 1;\n\n// Almacenar el nuevo valor en el contexto\ncontext.set('messageCount', count);\n\n// Preparar el mensaje de salida\nmsg.payload = `Mensajes recibidos: ${count}`;\n\n// Enviar el mensaje al siguiente nodo\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":730,"y":400,"wires":[["3c66ed55c2b5cbaf"]]},{"id":"3c66ed55c2b5cbaf","type":"debug","z":"2a0199abf9aac834","d":true,"name":"debug 3","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":940,"y":400,"wires":[]},{"id":"9666e75ae423be15","type":"function","z":"2a0199abf9aac834","d":true,"name":"canales dinámicos whitelist","func":"// Obtener la lista blanca desde el mensaje o una variable global\nlet whitelist = msg.payload || global.get('whitelist') || [];\n\n// Generar los tópicos MQTT barrio/estaciones/datos\nlet topics = whitelist.map(stationId => `barrio/estaciones/${stationId}/datos`);\n\n// Guardar los tópicos en el mensaje para usarlos en el nodo MQTT\nmsg.topics = topics;\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":260,"y":120,"wires":[[]]},{"id":"9908d5722245467a","type":"debug","z":"2a0199abf9aac834","name":"debug 2","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":970,"y":160,"wires":[]},{"id":"7af59be8107f0c5f","type":"influxdb out","z":"2a0199abf9aac834","influxdb":"a863383983dc261e","name":"persistir","measurement":"datos","precision":"","retentionPolicy":"","database":"database","precisionV18FluxV20":"ms","retentionPolicyV18Flux":"","org":"organisation","bucket":"bucket","x":1020,"y":280,"wires":[]},{"id":"1bed5ab838b50d6a","type":"cbor","z":"2a0199abf9aac834","name":"parsear cbor","property":"payload","x":650,"y":200,"wires":[["d47846bbfea07eb5"]]},{"id":"84bb87ae74f0de04","type":"http in","z":"2a0199abf9aac834","name":"Pagina web","url":"/info","method":"get","upload":false,"swaggerDoc":"","x":190,"y":500,"wires":[["d2b4419fae7e29a6"]]},{"id":"d2b4419fae7e29a6","type":"template","z":"2a0199abf9aac834","name":"","field":"payload","fieldType":"msg","format":"handlebars","syntax":"mustache","template":"<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Red Meteorológica Barrial Cooperativa</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <link href=\"httpsd://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap\" rel=\"stylesheet\">\n</head>\n<body>\n    <header>\n        <div class=\"container\">\n            <h1>Red Meteorológica Barrial Cooperativa 🌦️</h1>\n            <p class=\"subtitle\">Mide el clima de tu barrio en tiempo real y sé parte de una red ciudadana de datos abiertos.</p>\n        </div>\n    </header>\n\n    <main class=\"container\">\n        <section id=\"descripcion\">\n            <h2>¿En qué consiste el Proyecto?</h2>\n            <p>Nuestra red es una iniciativa comunitaria para crear un mapa meteorológico detallado y en tiempo real de nuestro barrio. Utilizamos tecnología accesible como el ESP32 para que cualquier vecino pueda construir su propia estación (nodo), medir variables como <strong>temperatura, humedad y presión</strong>, y compartir los datos de forma automática con un servidor central. El objetivo es simple: tener datos climáticos precisos, abiertos y generados por nosotros mismos.</p>\n        </section>\n\n        <hr>\n\n        <section id=\"arquitectura\">\n            <h2>¿Cómo Funciona? ⚙️</h2>\n            <p>La arquitectura del sistema es simple y robusta, diseñada para ser escalable y fácil de mantener. Se compone de dos partes principales: los nodos cliente y el nodo central.</p>\n            <div class=\"cards-container\">\n                <div class=\"card\">\n                    <h3>1. Nodos Cliente (Tu Estación)</h3>\n                    <p>Cada estación meteorológica es un \"nodo cliente\". Está construida con un microcontrolador <strong>ESP32</strong> y sensores. Su única tarea es recolectar datos y enviarlos de forma segura a nuestro servidor a través de Wi-Fi usando el protocolo <strong>MQTT</strong>.</p>\n                </div>\n                <div class=\"card\">\n                    <h3>2. Nodo Central (Nuestro Servidor)</h3>\n                    <p>El servidor recibe y orquesta todos los datos. Un <strong>Broker MQTT</strong> actúa como receptor. Luego, <strong>Node-RED</strong> procesa y estandariza la información para almacenarla en la base de datos <strong>InfluxDB</strong>, que está optimizada para series temporales. Finalmente, ¡la magia ocurre!</p>\n                </div>\n                <div class=\"card\">\n                    <h3>3. Visualización (El Dashboard)</h3>\n                    <p><strong>Grafana</strong> se conecta a la base de datos y transforma los números en información útil. Crea gráficos, mapas de calor y tablas que se muestran en un dashboard público. Así, todos podemos ver el estado del clima en el barrio de un solo vistazo.</p>\n                </div>\n            </div>\n        </section>\n\n        <hr>\n\n        <section id=\"como-sumarse\">\n            <h2>¡Quiero Sumarme! ¿Cómo Empiezo?</h2>\n            <p>¡Excelente! Unirte al proyecto es más fácil de lo que crees. Solo necesitas ganas de aprender y algunos componentes electrónicos básicos. Hemos preparado una guía completa con todo lo que necesitas.</p>\n            <div class=\"pasos\">\n                <div class=\"paso\">\n                    <span class=\"numero\">1</span>\n                    <p><strong>Reúne los componentes:</strong> Necesitarás un ESP32, sensores (como el BME280 o DHT22) y algunos cables. En nuestra guía encontrarás una lista detallada con enlaces de compra sugeridos.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">2</span>\n                    <p><strong>Monta tu estación:</strong> Sigue nuestros tutoriales paso a paso para ensamblar el hardware. ¡No necesitas ser un experto en electrónica!</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">3</span>\n                    <p><strong>Carga el código:</strong> Te proporcionamos el código listo para cargar en tu ESP32. Solo tendrás que configurar tu red Wi-Fi y un identificador único para tu estación.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">4</span>\n                    <p><strong>¡Listo!</strong> Una vez encendida, tu estación comenzará a enviar datos automáticamente. Podrás ver tus mediciones en el dashboard general de la red.</p>\n                </div>\n            </div>\n        </section>\n\n        <section id=\"cta\">\n            <p>Toda la documentación técnica, el código fuente y los tutoriales están disponibles en nuestro repositorio de GitHub.</p>\n            <a href=\"#\" class=\"cta-button\">Ver Guía y Código en GitHub</a>\n        </section>\n    </main>\n\n    <footer>\n        <div class=\"container\">\n            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>\n        </div>\n    </footer>\n</body>\n</html>","output":"str","x":420,"y":540,"wires":[["08d78dedd2337299"]]},{"id":"08d78dedd2337299","type":"http response","z":"2a0199abf9aac834","name":"","statusCode":"","headers":{},"x":630,"y":540,"wires":[]},{"id":"21f16b2c1eba612c","type":"http in","z":"2a0199abf9aac834","name":"Estilos","url":"/style.css","method":"get","upload":false,"swaggerDoc":"","x":170,"y":620,"wires":[["81a6aee7c51440f4"]]},{"id":"98d4928fe4cf34c8","type":"http response","z":"2a0199abf9aac834","name":"","statusCode":"","headers":{},"x":710,"y":660,"wires":[]},{"id":"a4a952ffb686b70d","type":"change","z":"2a0199abf9aac834","name":"","rules":[{"t":"set","p":"headers","pt":"msg","to":"{     \"content-type\": \"text/css\" }","tot":"json"}],"action":"","property":"","from":"","to":"","reg":false,"x":550,"y":680,"wires":[["98d4928fe4cf34c8"]]},{"id":"81a6aee7c51440f4","type":"template","z":"2a0199abf9aac834","name":"","field":"payload","fieldType":"msg","format":"handlebars","syntax":"mustache","template":":root {\n    --primary-color: #007BFF;\n    --secondary-color: #343A40;\n    --background-color: #f8f9fa;\n    --text-color: #212529;\n    --card-bg: #ffffff;\n    --border-color: #dee2e6;\n}\n\nbody {\n    font-family: 'Roboto', sans-serif;\n    line-height: 1.6;\n    color: var(--text-color);\n    background-color: var(--background-color);\n    margin: 0;\n    padding: 0;\n}\n\n.container {\n    max-width: 960px;\n    margin: 0 auto;\n    padding: 0 20px;\n}\n\nheader {\n    background-color: var(--secondary-color);\n    color: #ffffff;\n    padding: 3rem 0;\n    text-align: center;\n    border-bottom: 5px solid var(--primary-color);\n}\n\nheader h1 {\n    font-size: 2.8rem;\n    font-weight: 700;\n    margin: 0;\n}\n\nheader .subtitle {\n    font-size: 1.2rem;\n    font-weight: 300;\n    margin-top: 0.5rem;\n}\n\nmain {\n    padding: 2rem 0;\n}\n\nsection {\n    padding: 2rem 0;\n}\n\nsection h2 {\n    text-align: center;\n    font-size: 2.2rem;\n    color: var(--secondary-color);\n    margin-bottom: 2rem;\n    position: relative;\n}\n\nhr {\n    border: 0;\n    height: 1px;\n    background: var(--border-color);\n    margin: 1rem 0;\n}\n\n.cards-container {\n    display: flex;\n    justify-content: space-between;\n    gap: 20px;\n    flex-wrap: wrap;\n}\n\n.card {\n    background: var(--card-bg);\n    border-radius: 8px;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);\n    padding: 1.8rem;\n    text-align: center;\n    flex-basis: calc(33.333% - 20px);\n    transition: transform 0.3s ease, box-shadow 0.3s ease;\n}\n\n.card:hover {\n    transform: translateY(-5px);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);\n}\n\n.card h3 {\n    color: var(--primary-color);\n    font-size: 1.4rem;\n    margin-top: 0;\n}\n\n.pasos {\n    display: flex;\n    flex-direction: column;\n    gap: 1.5rem;\n}\n\n.paso {\n    display: flex;\n    align-items: center;\n    background: var(--card-bg);\n    padding: 1rem 1.5rem;\n    border-radius: 8px;\n    border-left: 5px solid var(--primary-color);\n}\n\n.paso .numero {\n    font-size: 2rem;\n    font-weight: 700;\n    color: var(--primary-color);\n    margin-right: 1.5rem;\n}\n\n.paso p {\n    margin: 0;\n}\n\n#cta {\n    text-align: center;\n    padding: 3rem 0;\n}\n\n#cta p {\n    font-size: 1.1rem;\n    margin-bottom: 1.5rem;\n}\n\n.cta-button {\n    background-color: var(--primary-color);\n    color: #ffffff;\n    padding: 15px 30px;\n    text-decoration: none;\n    font-size: 1.2rem;\n    font-weight: 700;\n    border-radius: 5px;\n    transition: background-color 0.3s ease, transform 0.2s ease;\n}\n\n.cta-button:hover {\n    background-color: #0056b3;\n    transform: scale(1.05);\n}\n\nfooter {\n    background-color: var(--secondary-color);\n    color: #ccc;\n    text-align: center;\n    padding: 1.5rem 0;\n    margin-top: 2rem;\n}\n\n@media (max-width: 768px) {\n    header h1 {\n        font-size: 2rem;\n    }\n\n    .cards-container {\n        flex-direction: column;\n    }\n    \n    .card {\n        flex-basis: 100%;\n    }\n}","output":"str","x":320,"y":680,"wires":[["a4a952ffb686b70d"]]},{"id":"e47ff98f113b9352","type":"delay","z":"2a0199abf9aac834","name":"","pauseType":"queue","timeout":"5","timeoutUnits":"seconds","rate":"1","nbRateUnits":"10","rateUnits":"second","randomFirst":"1","randomLast":"5","randomUnits":"seconds","drop":true,"allowrate":true,"outputs":1,"x":440,"y":340,"wires":[["1bed5ab838b50d6a"]]},{"id":"57a306eb47001b96","type":"mqtt-broker","name":"MQTT local","broker":"mqtt","port":1883,"clientid":"","autoConnect":true,"usetls":false,"protocolVersion":"5","keepalive":60,"cleansession":true,"autoUnsubscribe":true,"birthTopic":"","birthQos":"0","birthRetain":"false","birthPayload":"","birthMsg":{},"closeTopic":"","closeQos":"0","closeRetain":"false","closePayload":"","closeMsg":{},"willTopic":"","willQos":"0","willRetain":"false","willPayload":"","willMsg":{},"userProps":"","sessionExpiry":""},{"id":"a863383983dc261e","type":"influxdb","hostname":"influxdb","port":8086,"protocol":"http","database":"mediciones","name":"influxdb","usetls":false,"tls":"","influxdbVersion":"1.x","url":"http://localhost:8086","timeout":10,"rejectUnauthorized":true}]
+[
+    {
+        "id": "fa9d2af618bbd4d6",
+        "type": "tab",
+        "label": "Flujo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "178c2087bd80e284",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "formatear datos",
+        "func": "let datos = msg.payload;\n\nmsg.payload = [{\n    humidity: datos.humedad,\n    temperature: datos.temperatura,\n},\n{\n    lugar:\"La Plata\",\n    station_id: datos.station_id,\n    lat: parseFloat(datos.ubicacion.lat),\n    lon: parseFloat(datos.ubicacion.lon),\n    localidad: datos.localidad\n}];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 440,
+        "wires": [
+            [
+                "4b9eb268578f9ee5",
+                "ab01f47116378f1d"
+            ]
+        ]
+    },
+    {
+        "id": "ab01f47116378f1d",
+        "type": "debug",
+        "z": "fa9d2af618bbd4d6",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1090,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "4b9eb268578f9ee5",
+        "type": "influxdb out",
+        "z": "fa9d2af618bbd4d6",
+        "influxdb": "a863383983dc261e",
+        "name": "persistir",
+        "measurement": "datos",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 1140,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "d8cf453ca7ea261e",
+        "type": "cbor",
+        "z": "fa9d2af618bbd4d6",
+        "name": "parsear cbor",
+        "property": "payload",
+        "x": 770,
+        "y": 340,
+        "wires": [
+            [
+                "178c2087bd80e284"
+            ]
+        ]
+    },
+    {
+        "id": "4b03c88fb2bedcb9",
+        "type": "http in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "Pagina web",
+        "url": "/info",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 130,
+        "y": 640,
+        "wires": [
+            [
+                "1ea3a00fb6f16eb5"
+            ]
+        ]
+    },
+    {
+        "id": "1ea3a00fb6f16eb5",
+        "type": "template",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Red Meteorológica Barrial Cooperativa</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <link href=\"httpsd://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap\" rel=\"stylesheet\">\n</head>\n<body>\n    <header>\n        <div class=\"container\">\n            <h1>Red Meteorológica Barrial Cooperativa 🌦️</h1>\n            <p class=\"subtitle\">Mide el clima de tu barrio en tiempo real y sé parte de una red ciudadana de datos abiertos.</p>\n        </div>\n    </header>\n\n    <main class=\"container\">\n        <section id=\"descripcion\">\n            <h2>¿En qué consiste el Proyecto?</h2>\n            <p>Nuestra red es una iniciativa comunitaria para crear un mapa meteorológico detallado y en tiempo real de nuestro barrio. Utilizamos tecnología accesible como el ESP32 para que cualquier vecino pueda construir su propia estación (nodo), medir variables como <strong>temperatura, humedad y presión</strong>, y compartir los datos de forma automática con un servidor central. El objetivo es simple: tener datos climáticos precisos, abiertos y generados por nosotros mismos.</p>\n        </section>\n\n        <hr>\n\n        <section id=\"arquitectura\">\n            <h2>¿Cómo Funciona? ⚙️</h2>\n            <p>La arquitectura del sistema es simple y robusta, diseñada para ser escalable y fácil de mantener. Se compone de dos partes principales: los nodos cliente y el nodo central.</p>\n            <div class=\"cards-container\">\n                <div class=\"card\">\n                    <h3>1. Nodos Cliente (Tu Estación)</h3>\n                    <p>Cada estación meteorológica es un \"nodo cliente\". Está construida con un microcontrolador <strong>ESP32</strong> y sensores. Su única tarea es recolectar datos y enviarlos de forma segura a nuestro servidor a través de Wi-Fi usando el protocolo <strong>MQTT</strong>.</p>\n                </div>\n                <div class=\"card\">\n                    <h3>2. Nodo Central (Nuestro Servidor)</h3>\n                    <p>El servidor recibe y orquesta todos los datos. Un <strong>Broker MQTT</strong> actúa como receptor. Luego, <strong>Node-RED</strong> procesa y estandariza la información para almacenarla en la base de datos <strong>InfluxDB</strong>, que está optimizada para series temporales. Finalmente, ¡la magia ocurre!</p>\n                </div>\n                <div class=\"card\">\n                    <h3>3. Visualización (El Dashboard)</h3>\n                    <p><strong>Grafana</strong> se conecta a la base de datos y transforma los números en información útil. Crea gráficos, mapas de calor y tablas que se muestran en un dashboard público. Así, todos podemos ver el estado del clima en el barrio de un solo vistazo.</p>\n                </div>\n            </div>\n        </section>\n\n        <hr>\n\n        <section id=\"como-sumarse\">\n            <h2>¡Quiero Sumarme! ¿Cómo Empiezo?</h2>\n            <p>¡Excelente! Unirte al proyecto es más fácil de lo que crees. Solo necesitas ganas de aprender y algunos componentes electrónicos básicos. Hemos preparado una guía completa con todo lo que necesitas.</p>\n            <div class=\"pasos\">\n                <div class=\"paso\">\n                    <span class=\"numero\">1</span>\n                    <p><strong>Reúne los componentes:</strong> Necesitarás un ESP32, sensores (como el BME280 o DHT22) y algunos cables. En nuestra guía encontrarás una lista detallada con enlaces de compra sugeridos.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">2</span>\n                    <p><strong>Monta tu estación:</strong> Sigue nuestros tutoriales paso a paso para ensamblar el hardware. ¡No necesitas ser un experto en electrónica!</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">3</span>\n                    <p><strong>Carga el código:</strong> Te proporcionamos el código listo para cargar en tu ESP32. Solo tendrás que configurar tu red Wi-Fi y un identificador único para tu estación.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">4</span>\n                    <p><strong>¡Listo!</strong> Una vez encendida, tu estación comenzará a enviar datos automáticamente. Podrás ver tus mediciones en el dashboard general de la red.</p>\n                </div>\n            </div>\n        </section>\n\n        <section id=\"cta\">\n            <p>Toda la documentación técnica, el código fuente y los tutoriales están disponibles en nuestro repositorio de GitHub.</p>\n            <a href=\"#\" class=\"cta-button\">Ver Guía y Código en GitHub</a>\n        </section>\n\n  <button onclick=\"generarYEnviar()\">Generar Hash y Enviar</button>\n  <div id=\"hashDisplay\">Hash generado: <span id=\"hash\"></span></div>\n\n  <script>\n    function generarHash() {\n      // Hash aleatorio en base a valores hexadecimales\n      return crypto.randomUUID().replace(/-/g, '');\n    }\n\n    async function enviarAInflux(hash) {\n      const org = \"tu_organizacion\";\n      const bucket = \"tu_bucket\";\n      const token = \"tu_token\";\n\n      const url = `https://us-east-1-1.aws.cloud2.influxdata.com/api/v2/write?org=${org}&bucket=${bucket}&precision=ns`;\n\n      // Línea en Influx Line Protocol\n      const data = `hashes value=\"${hash}\"`;\n\n      try {\n        const response = await fetch(url, {\n          method: \"POST\",\n          headers: {\n            \"Authorization\": `Token ${token}`,\n            \"Content-Type\": \"text/plain\"\n          },\n          body: data\n        });\n\n        if (response.ok) {\n          console.log(\"Hash enviado correctamente.\");\n        } else {\n          console.error(\"Error al enviar a Influx:\", await response.text());\n        }\n      } catch (error) {\n        console.error(\"Error de red:\", error);\n      }\n    }\n\n    function generarYEnviar() {\n      const hash = generarHash();\n      document.getElementById(\"hash\").textContent = hash;\n      enviarAInflux(hash);\n    }\n  </script>\n\n    </main>\n\n    <footer>\n        <div class=\"container\">\n            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>\n        </div>\n    </footer>\n</body>\n</html>",
+        "output": "str",
+        "x": 320,
+        "y": 640,
+        "wires": [
+            [
+                "f3ddd96e0e75a71e"
+            ]
+        ]
+    },
+    {
+        "id": "f3ddd96e0e75a71e",
+        "type": "http response",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 530,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "1e2ebcedcc0ffe9f",
+        "type": "http in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "Estilos",
+        "url": "/style.css",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 760,
+        "wires": [
+            [
+                "ca4f0c9d1c665f14"
+            ]
+        ]
+    },
+    {
+        "id": "0c621c0875175d84",
+        "type": "http response",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 870,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "72025deca8b58d54",
+        "type": "change",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "headers",
+                "pt": "msg",
+                "to": "{     \"content-type\": \"text/css\" }",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 590,
+        "y": 760,
+        "wires": [
+            [
+                "0c621c0875175d84"
+            ]
+        ]
+    },
+    {
+        "id": "ca4f0c9d1c665f14",
+        "type": "template",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": ":root {\n    --primary-color: #007BFF;\n    --secondary-color: #343A40;\n    --background-color: #f8f9fa;\n    --text-color: #212529;\n    --card-bg: #ffffff;\n    --border-color: #dee2e6;\n}\n\nbody {\n    font-family: 'Roboto', sans-serif;\n    line-height: 1.6;\n    color: var(--text-color);\n    background-color: var(--background-color);\n    margin: 0;\n    padding: 0;\n}\n\n.container {\n    max-width: 960px;\n    margin: 0 auto;\n    padding: 0 20px;\n}\n\nheader {\n    background-color: var(--secondary-color);\n    color: #ffffff;\n    padding: 3rem 0;\n    text-align: center;\n    border-bottom: 5px solid var(--primary-color);\n}\n\nheader h1 {\n    font-size: 2.8rem;\n    font-weight: 700;\n    margin: 0;\n}\n\nheader .subtitle {\n    font-size: 1.2rem;\n    font-weight: 300;\n    margin-top: 0.5rem;\n}\n\nmain {\n    padding: 2rem 0;\n}\n\nsection {\n    padding: 2rem 0;\n}\n\nsection h2 {\n    text-align: center;\n    font-size: 2.2rem;\n    color: var(--secondary-color);\n    margin-bottom: 2rem;\n    position: relative;\n}\n\nhr {\n    border: 0;\n    height: 1px;\n    background: var(--border-color);\n    margin: 1rem 0;\n}\n\n.cards-container {\n    display: flex;\n    justify-content: space-between;\n    gap: 20px;\n    flex-wrap: wrap;\n}\n\n.card {\n    background: var(--card-bg);\n    border-radius: 8px;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);\n    padding: 1.8rem;\n    text-align: center;\n    flex-basis: calc(33.333% - 20px);\n    transition: transform 0.3s ease, box-shadow 0.3s ease;\n}\n\n.card:hover {\n    transform: translateY(-5px);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);\n}\n\n.card h3 {\n    color: var(--primary-color);\n    font-size: 1.4rem;\n    margin-top: 0;\n}\n\n.pasos {\n    display: flex;\n    flex-direction: column;\n    gap: 1.5rem;\n}\n\n.paso {\n    display: flex;\n    align-items: center;\n    background: var(--card-bg);\n    padding: 1rem 1.5rem;\n    border-radius: 8px;\n    border-left: 5px solid var(--primary-color);\n}\n\n.paso .numero {\n    font-size: 2rem;\n    font-weight: 700;\n    color: var(--primary-color);\n    margin-right: 1.5rem;\n}\n\n.paso p {\n    margin: 0;\n}\n\n#cta {\n    text-align: center;\n    padding: 3rem 0;\n}\n\n#cta p {\n    font-size: 1.1rem;\n    margin-bottom: 1.5rem;\n}\n\n.cta-button {\n    background-color: var(--primary-color);\n    color: #ffffff;\n    padding: 15px 30px;\n    text-decoration: none;\n    font-size: 1.2rem;\n    font-weight: 700;\n    border-radius: 5px;\n    transition: background-color 0.3s ease, transform 0.2s ease;\n}\n\n.cta-button:hover {\n    background-color: #0056b3;\n    transform: scale(1.05);\n}\n\nfooter {\n    background-color: var(--secondary-color);\n    color: #ccc;\n    text-align: center;\n    padding: 1.5rem 0;\n    margin-top: 2rem;\n}\n\n@media (max-width: 768px) {\n    header h1 {\n        font-size: 2rem;\n    }\n\n    .cards-container {\n        flex-direction: column;\n    }\n    \n    .card {\n        flex-basis: 100%;\n    }\n}",
+        "output": "str",
+        "x": 320,
+        "y": 760,
+        "wires": [
+            [
+                "72025deca8b58d54"
+            ]
+        ]
+    },
+    {
+        "id": "f363af2641f6281c",
+        "type": "delay",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "pauseType": "timed",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "10",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": true,
+        "outputs": 1,
+        "x": 600,
+        "y": 280,
+        "wires": [
+            [
+                "d8cf453ca7ea261e"
+            ]
+        ]
+    },
+    {
+        "id": "0251a99c84adb53f",
+        "type": "influxdb in",
+        "z": "fa9d2af618bbd4d6",
+        "influxdb": "a863383983dc261e",
+        "name": "hashes",
+        "query": "SELECT hash \nFROM hashes",
+        "rawOutput": true,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "organisation",
+        "x": 280,
+        "y": 240,
+        "wires": [
+            [
+                "70bb2d95ffec9124"
+            ]
+        ]
+    },
+    {
+        "id": "49608e675d99cd25",
+        "type": "inject",
+        "z": "fa9d2af618bbd4d6",
+        "name": "wakeup query",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 220,
+        "wires": [
+            [
+                "0251a99c84adb53f"
+            ]
+        ]
+    },
+    {
+        "id": "e74186b71e14e3a0",
+        "type": "influxdb out",
+        "z": "fa9d2af618bbd4d6",
+        "d": true,
+        "influxdb": "a863383983dc261e",
+        "name": "",
+        "measurement": "hashes",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 420,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "13c2e9265efc52e3",
+        "type": "inject",
+        "z": "fa9d2af618bbd4d6",
+        "d": true,
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"hash\": 2}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 920,
+        "wires": [
+            [
+                "e74186b71e14e3a0"
+            ]
+        ]
+    },
+    {
+        "id": "70bb2d95ffec9124",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "formatear topicos",
+        "func": "const series = msg.payload['results'][0].series[0];\nconst columns = series.columns; // [\"time\", \"hash\"]\nconst values = series.values;   // [[\"...\", 1], [\"...\", 1]]\n\n// Encontrar dinámicamente en qué posición está la columna 'hash'\nconst hashIndex = columns.indexOf('hash');\nif (hashIndex === -1) {\n    node.error(\"La columna 'hash' no se encontró en los resultados de InfluxDB.\");\n    return null; // Detiene el flujo si no existe la columna\n}\n\n// Usar un Set para extraer los hashes y eliminar duplicados automáticamente\nconst topicSet = new Set();\nfor (const row of values) {\n    // Extrae el hash usando el índice que encontramos\n    const hash = row[hashIndex];\n    if (hash !== null && hash !== undefined) {\n        topicSet.add(`barrio/estaciones/${hash}`);\n    }\n}\n\n// Si no se encontraron tópicos, detener el flujo\nif (topicSet.size === 0) {\n    node.warn(\"No se encontraron hashes válidos para crear tópicos.\");\n    return null;\n}\n\n// Construir el payload final con los tópicos únicos\nmsg.topic = Array.from(topicSet) // Convierte el Set a un Array\nmsg.action = \"subscribe\"\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 230,
+        "y": 340,
+        "wires": [
+            [
+                "74695c79baad5356"
+            ]
+        ]
+    },
+    {
+        "id": "74695c79baad5356",
+        "type": "mqtt in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "mqtt in dinamico",
+        "topic": "",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "57a306eb47001b96",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 1,
+        "x": 440,
+        "y": 340,
+        "wires": [
+            [
+                "f363af2641f6281c"
+            ]
+        ]
+    },
+    {
+        "id": "a033974cb49c11d3",
+        "type": "mqtt out",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "topic": "barrio/estaciones/1",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "57a306eb47001b96",
+        "x": 790,
+        "y": 1080,
+        "wires": []
+    },
+    {
+        "id": "2bab4c5f3b206d9a",
+        "type": "inject",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "barrio/estaciones/1",
+        "payload": "",
+        "payloadType": "date",
+        "x": 450,
+        "y": 1100,
+        "wires": [
+            [
+                "a033974cb49c11d3"
+            ]
+        ]
+    },
+    {
+        "id": "a863383983dc261e",
+        "type": "influxdb",
+        "hostname": "influxdb",
+        "port": 8086,
+        "protocol": "http",
+        "database": "mediciones",
+        "name": "influxdb",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.x",
+        "url": "http://localhost:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "57a306eb47001b96",
+        "type": "mqtt-broker",
+        "name": "MQTT local",
+        "broker": "mqtt",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "5",
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]

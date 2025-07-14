@@ -51,8 +51,8 @@ void publicarDatosSensor() {
     cbor_encoder_init(&encoder, buffer, sizeof(buffer), 0);
     
     // mapa principal
-    cbor_encoder_create_map(&encoder, &mapEncoder, 4); // 4 claves
-
+    cbor_encoder_create_map(&encoder, &mapEncoder, 5);
+    
     cbor_encode_text_stringz(&mapEncoder, "station_id");
     cbor_encode_text_stringz(&mapEncoder, ESTACION_ID);
 
@@ -77,14 +77,12 @@ void publicarDatosSensor() {
 
     size_t encodedLength = cbor_encoder_get_buffer_size(&encoder, buffer);
 
-    String topic = "barrio/estaciones/" + String(ESTACION_ID);
+    String topic = "barrio/estaciones/" + String(CLAVE);
     
     Serial.print("Publicando en el canal: ");
     Serial.println(topic);
 
     client.publish(topic.c_str(), buffer, encodedLength);
-
-    client.publish("barrio/estaciones/datos", buffer, encodedLength);
 }
 
 void setup() {
