@@ -62,6 +62,9 @@ void publicarDatosSensor() {
     cbor_encode_text_stringz(&mapEncoder, "humedad");
     cbor_encode_float(&mapEncoder, humedad);
 
+    cbor_encode_text_stringz(&mapEncoder, "localidad");
+    cbor_encode_text_stringz(&mapEncoder, LOCALIDAD);
+
     cbor_encode_text_stringz(&mapEncoder, "ubicacion");
     cbor_encoder_create_map(&mapEncoder, &locEncoder, 2);
     cbor_encode_text_stringz(&locEncoder, "lat");
@@ -73,6 +76,13 @@ void publicarDatosSensor() {
     cbor_encoder_close_container(&encoder, &mapEncoder);
 
     size_t encodedLength = cbor_encoder_get_buffer_size(&encoder, buffer);
+
+    String topic = "barrio/estaciones/" + String(ESTACION_ID);
+    
+    Serial.print("Publicando en el canal: ");
+    Serial.println(topic);
+
+    client.publish(topic.c_str(), buffer, encodedLength);
 
     client.publish("barrio/estaciones/datos", buffer, encodedLength);
 }

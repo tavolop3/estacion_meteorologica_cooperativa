@@ -13,5 +13,6 @@
 #define ESTACION_ID "casa_mati"
 #define LATITUD -34.9214
 #define LONGITUD -57.9545
+#define LOCALIDAD "TOLOSA"
 
 #endif
