@@ -102,7 +102,7 @@
         "fieldType": "msg",
         "format": "handlebars",
         "syntax": "mustache",
-        "template": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Red Meteorológica Barrial Cooperativa</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap\" rel=\"stylesheet\">\n</head>\n<body>\n    <header>\n        <div class=\"container\">\n            <h1>Red Meteorológica Barrial Cooperativa 🌦️</h1>\n            <p class=\"subtitle\">Mide el clima de tu barrio en tiempo real y sé parte de una red ciudadana de datos abiertos.</p>\n        </div>\n    </header>\n\n    <main class=\"container\">\n        <section id=\"descripcion\">\n            <h2>¿En qué consiste el Proyecto?</h2>\n            <p>Nuestra red es una iniciativa comunitaria para crear un mapa meteorológico detallado y en tiempo real de nuestro barrio. Utilizamos tecnología accesible como el <strong>ESP32</strong> para que cualquier vecino pueda construir su propia estación (nodo), medir variables como <strong>temperatura, humedad y presión</strong>, y compartir los datos de forma automática con un servidor central. El objetivo es simple: tener datos climáticos precisos, abiertos y generados por nosotros mismos.</p>\n        </section>\n\n        <hr>\n\n        <section id=\"arquitectura\">\n            <h2>¿Cómo Funciona? ⚙️</h2>\n            <p>La arquitectura del sistema es simple y robusta, diseñada para ser escalable y fácil de mantener. Se compone de dos partes principales: los nodos cliente y el nodo central.</p>\n            <div class=\"cards-container\">\n                <div class=\"card\">\n                    <h3>1. Nodos Cliente (Tu Estación)</h3>\n                    <p>Cada estación meteorológica es un \"nodo cliente\". Está construida con un microcontrolador <strong>ESP32</strong> y sensores. Su única tarea es recolectar datos y enviarlos de forma segura a nuestro servidor a través de Wi-Fi usando el protocolo <strong>MQTT</strong>.</p>\n                </div>\n                <div class=\"card\">\n                    <h3>2. Nodo Central (Nuestro Servidor)</h3>\n                    <p>El servidor recibe y orquesta todos los datos. Un <strong>Broker MQTT</strong> actúa como receptor. Luego, <strong>Node-RED</strong> procesa y estandariza la información para almacenarla en la base de datos <strong>InfluxDB</strong>, que está optimizada para series temporales. Finalmente, ¡la magia ocurre!</p>\n                </div>\n                <div class=\"card\">\n                    <h3>3. Visualización (El Dashboard)</h3>\n                    <p><strong>Grafana</strong> se conecta a la base de datos y transforma los números en información útil. Crea gráficos, mapas de calor y tablas que se muestran en un dashboard público. Así, todos podemos ver el estado del clima en el barrio de un solo vistazo.</p>\n                </div>\n            </div>\n        </section>\n\n        <hr>\n\n        <section id=\"como-sumarse\">\n            <h2>¡Quiero Sumarme! ¿Cómo Empiezo?</h2>\n            <p>¡Excelente! Unirte al proyecto es más fácil de lo que crees. Solo necesitas ganas de aprender y algunos componentes electrónicos básicos. Hemos preparado una guía completa con todo lo que necesitas.</p>\n            <div class=\"pasos\">\n                <div class=\"paso\">\n                    <span class=\"numero\">1</span>\n                    <p><strong>Reúne los componentes:</strong> Necesitarás un ESP32, sensores (como el BME280 o DHT22) y algunos cables. En nuestra guía encontrarás una lista detallada con enlaces de compra sugeridos.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">2</span>\n                    <p><strong>Monta tu estación:</strong> Sigue nuestros tutoriales paso a paso para ensamblar el hardware. ¡No necesitas ser un experto en electrónica!</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">3</span>\n                    <p><strong>Carga el código:</strong> Te proporcionamos el código listo para cargar en tu ESP32. Solo tendrás que configurar tu red Wi-Fi y un identificador único para tu estación.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">4</span>\n                    <p><strong>¡Listo!</strong> Una vez encendida, tu estación comenzará a enviar datos automáticamente. Podrás ver tus mediciones en el dashboard general de la red.</p>\n                </div>\n            </div>\n        </section>\n        \n        <hr>\n\n        <section id=\"generar-hash\">\n            <h2>Generador de Hash 🔐</h2>\n            <p> Haz clic en el botón para generar un hash único (SHA-256). El hash se mostrará en pantalla y se enviará a nuestra base de datos InfluxDB a través de Node-RED.</p>\n            <p> Es importante que guardes el valor del hash. Ese valor te sera de utildiad al comunicarte con nuestro servidor. </p>\n            <p> ¡No te preocupes! Todo lo que deberas de hacer es pegar el valor del hash en la variable CLAVE del archivo config.h que te dimos. </p>\n            <div class=\"hash-container\">\n                <button id=\"btn-generar-hash\" class=\"cta-button\">Generar y Guardar Hash</button>\n                <div id=\"hash-display-container\">\n                    <strong>Hash Generado:</strong>\n                    <code id=\"hash-display\">Aún no se ha generado ningún hash.</code>\n                </div>\n            </div>\n        </section>\n        <section id=\"cta\">\n            <p>Toda la documentación técnica, el código fuente y los tutoriales están disponibles en nuestro repositorio de GitHub.</p>\n            <a href=\"#\" class=\"cta-button\">Ver Guía y Código en GitHub</a>\n        </section>\n    </main>\n\n    <footer>\n        <div class=\"container\">\n            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>\n        </div>\n    </footer>\n\n    <script>\n        const generateButton = document.getElementById('btn-generar-hash');\n        const hashDisplay = document.getElementById('hash-display');\n\n        async function generateSHA256(text) {\n            const encoder = new TextEncoder();\n            const data = encoder.encode(text);\n            const hashBuffer = await crypto.subtle.digest('SHA-256', data);\n            const hashArray = Array.from(new Uint8Array(hashBuffer));\n            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');\n            return hashHex;\n        }\n\n        generateButton.addEventListener('click', async () => {\n            hashDisplay.textContent = 'Generando...';\n            \n            const uniqueString = Date.now().toString() + Math.random().toString();\n\n            const generatedHash = await generateSHA256(uniqueString);\n\n            hashDisplay.textContent = generatedHash;\n\n            try {\n                const response = await fetch('/api/save-hash', {\n                    method: 'POST',\n                    headers: {\n                        'Content-Type': 'application/json'\n                    },\n                    body: JSON.stringify({ hash: generatedHash })\n                });\n\n                if (response.ok) {\n                    console.log('Hash enviado y guardado correctamente.');\n                } else {\n                    console.error('Error al guardar el hash. El servidor respondió:', response.statusText);\n                }\n            } catch (error) {\n                console.error('Error de red al intentar enviar el hash:', error);\n            }\n        });\n    </script>\n    </body>\n</html>",
+        "template": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Red Meteorológica Barrial Cooperativa</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap\" rel=\"stylesheet\">\n</head>\n<body>\n    <header>\n        <div class=\"container\">\n            <h1>Red Meteorológica Barrial Cooperativa 🌦️</h1>\n            <p class=\"subtitle\">Mide el clima de tu barrio en tiempo real y sé parte de una red ciudadana de datos abiertos.</p>\n        </div>\n    </header>\n\n    <main class=\"container\">\n        <section id=\"descripcion\">\n            <h2>¿En qué consiste el Proyecto?</h2>\n            <p>Nuestra red es una iniciativa comunitaria para crear un mapa meteorológico detallado y en tiempo real de nuestro barrio. Utilizamos tecnología accesible como el <strong>ESP32</strong> para que cualquier vecino pueda construir su propia estación (nodo), medir variables como <strong>temperatura, humedad y presión</strong>, y compartir los datos de forma automática con un servidor central. El objetivo es simple: tener datos climáticos precisos, abiertos y generados por nosotros mismos.</p>\n        </section>\n        <section id=\"visualizacion\">\n            <h2>Visualiza los Datos en Vivo 🗺️</h2>\n            <p>Explora el mapa interactivo con las mediciones en tiempo real de todas las estaciones de la red en La Plata. ¡Descubre cómo está el clima en cada rincón del barrio ahora mismo!</p>\n            <a href=\"dashboard.html\" class=\"cta-button\">Ver Datos en Tiempo Real</a>\n        </section>\n        <hr>\n\n        <section id=\"arquitectura\">\n            <h2>¿Cómo Funciona? ⚙️</h2>\n            <p>La arquitectura del sistema es simple y robusta, diseñada para ser escalable y fácil de mantener. Se compone de dos partes principales: los nodos cliente y el nodo central.</p>\n            <div class=\"cards-container\">\n                <div class=\"card\">\n                    <h3>1. Nodos Cliente (Tu Estación)</h3>\n                    <p>Cada estación meteorológica es un \"nodo cliente\". Está construida con un microcontrolador <strong>ESP32</strong> y sensores. Su única tarea es recolectar datos y enviarlos de forma segura a nuestro servidor a través de Wi-Fi usando el protocolo <strong>MQTT</strong>.</p>\n                </div>\n                <div class=\"card\">\n                    <h3>2. Nodo Central (Nuestro Servidor)</h3>\n                    <p>El servidor recibe y orquesta todos los datos. Un <strong>Broker MQTT</strong> actúa como receptor. Luego, <strong>Node-RED</strong> procesa y estandariza la información para almacenarla en la base de datos <strong>InfluxDB</strong>, que está optimizada para series temporales. Finalmente, ¡la magia ocurre!</p>\n                </div>\n                <div class=\"card\">\n                    <h3>3. Visualización (El Dashboard)</h3>\n                    <p><strong>Grafana</strong> se conecta a la base de datos y transforma los números en información útil. Crea gráficos, mapas de calor y tablas que se muestran en un dashboard público. Así, todos podemos ver el estado del clima en el barrio de un solo vistazo.</p>\n                </div>\n            </div>\n        </section>\n\n        <hr>\n\n        <section id=\"como-sumarse\">\n            <h2>¡Quiero Sumarme! ¿Cómo Empiezo?</h2>\n            <p>¡Excelente! Unirte al proyecto es más fácil de lo que crees. Solo necesitas ganas de aprender y algunos componentes electrónicos básicos. Hemos preparado una guía completa con todo lo que necesitas.</p>\n            <div class=\"pasos\">\n                <div class=\"paso\">\n                    <span class=\"numero\">1</span>\n                    <p><strong>Reúne los componentes:</strong> Necesitarás un ESP32, sensores (como el BME280 o DHT22) y algunos cables. En nuestra guía encontrarás una lista detallada con enlaces de compra sugeridos.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">2</span>\n                    <p><strong>Monta tu estación:</strong> Sigue nuestros tutoriales paso a paso para ensamblar el hardware. ¡No necesitas ser un experto en electrónica!</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">3</span>\n                    <p><strong>Carga el código:</strong> Te proporcionamos el código listo para cargar en tu ESP32. Solo tendrás que configurar tu red Wi-Fi y un identificador único para tu estación.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">4</span>\n                    <p><strong>¡Listo!</strong> Una vez encendida, tu estación comenzará a enviar datos automáticamente. Podrás ver tus mediciones en el dashboard general de la red.</p>\n                </div>\n            </div>\n        </section>\n        \n        <hr>\n\n        <section id=\"generar-hash\">\n            <h2>Generador de Hash 🔐</h2>\n            <p> Haz clic en el botón para generar un hash único (SHA-256). El hash se mostrará en pantalla y se enviará a nuestra base de datos InfluxDB a través de Node-RED.</p>\n            <p> Es importante que guardes el valor del hash. Ese valor te sera de utildiad al comunicarte con nuestro servidor. </p>\n            <p> ¡No te preocupes! Todo lo que deberas de hacer es pegar el valor del hash en la variable CLAVE del archivo config.h que te dimos. </p>\n            <div class=\"hash-container\">\n                <button id=\"btn-generar-hash\" class=\"cta-button\">Generar y Guardar Hash</button>\n                <div id=\"hash-display-container\">\n                    <strong>Hash Generado:</strong>\n                    <code id=\"hash-display\">Aún no se ha generado ningún hash.</code>\n                </div>\n            </div>\n        </section>\n        <section id=\"cta\">\n            <p>Toda la documentación técnica, el código fuente y los tutoriales están disponibles en nuestro repositorio de GitHub.</p>\n            <a href=\"#\" class=\"cta-button\">Ver Guía y Código en GitHub</a>\n        </section>\n    </main>\n\n    <footer>\n        <div class=\"container\">\n            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>\n        </div>\n    </footer>\n\n    <script>\n        const generateButton = document.getElementById('btn-generar-hash');\n        const hashDisplay = document.getElementById('hash-display');\n\n        async function generateSHA256(text) {\n            const encoder = new TextEncoder();\n            const data = encoder.encode(text);\n            const hashBuffer = await crypto.subtle.digest('SHA-256', data);\n            const hashArray = Array.from(new Uint8Array(hashBuffer));\n            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');\n            return hashHex;\n        }\n\n        generateButton.addEventListener('click', async () => {\n            hashDisplay.textContent = 'Generando...';\n            \n            const uniqueString = Date.now().toString() + Math.random().toString();\n\n            const generatedHash = await generateSHA256(uniqueString);\n\n            hashDisplay.textContent = generatedHash;\n\n            try {\n                const response = await fetch('/api/save-hash', {\n                    method: 'POST',\n                    headers: {\n                        'Content-Type': 'application/json'\n                    },\n                    body: JSON.stringify({ hash: generatedHash })\n                });\n\n                if (response.ok) {\n                    console.log('Hash enviado y guardado correctamente.');\n                } else {\n                    console.error('Error al guardar el hash. El servidor respondió:', response.statusText);\n                }\n            } catch (error) {\n                console.error('Error de red al intentar enviar el hash:', error);\n            }\n        });\n    </script>\n    </body>\n</html>",
         "output": "str",
         "x": 320,
         "y": 700,
@@ -282,8 +282,8 @@
         "retentionPolicyV18Flux": "",
         "org": "organisation",
         "bucket": "bucket",
-        "x": 340,
-        "y": 960,
+        "x": 680,
+        "y": 1500,
         "wires": []
     },
     {
@@ -304,8 +304,8 @@
         "topic": "",
         "payload": "{\"hash\": 2}",
         "payloadType": "json",
-        "x": 120,
-        "y": 960,
+        "x": 460,
+        "y": 1500,
         "wires": [
             [
                 "e74186b71e14e3a0"
@@ -368,8 +368,8 @@
         "correl": "",
         "expiry": "",
         "broker": "57a306eb47001b96",
-        "x": 330,
-        "y": 1060,
+        "x": 670,
+        "y": 1600,
         "wires": []
     },
     {
@@ -394,8 +394,8 @@
         "topic": "barrio/estaciones/1",
         "payload": "",
         "payloadType": "date",
-        "x": 120,
-        "y": 1060,
+        "x": 460,
+        "y": 1600,
         "wires": [
             [
                 "a033974cb49c11d3"
@@ -480,6 +480,127 @@
         "x": 520,
         "y": 200,
         "wires": []
+    },
+    {
+        "id": "3bab1874434598d6",
+        "type": "http in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "Mostrar datos",
+        "url": "/dashboard.html",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 130,
+        "y": 940,
+        "wires": [
+            [
+                "ab8ab3ab55e108c6"
+            ]
+        ]
+    },
+    {
+        "id": "ab8ab3ab55e108c6",
+        "type": "template",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Dashboard de Datos - Red Meteorológica</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <link rel=\"stylesheet\" href=\"dashboard.css\">\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap\" rel=\"stylesheet\">\n</head>\n<body>\n    <header>\n        <div class=\"container\">\n            <h1>Mapa de Datos en Tiempo Real 📍</h1>\n            <p class=\"subtitle\">Datos de las estaciones meteorológicas de La Plata</p>\n        </div>\n    </header>\n\n    <main class=\"container\">\n        <div class=\"dashboard-container\">\n            <iframe \n                src=\"http://localhost:3000/d-solo/b774f9df-aa30-4dc1-954b-e344bfe4a81a/estacion-meteorologica?orgId=1&from=1752596037118&to=1752596337118&timezone=browser&panelId=5&__feature.dashboardSceneSolo\" \n                class=\"grafana-iframe\" \n                frameborder=\"0\">\n            </iframe>\n        </div>\n\n        <div class=\"cta-container\">\n            <p>¿Quieres explorar más a fondo? Accede al dashboard completo para ver gráficos históricos, tablas de datos y más.</p>\n            <a href=\"http://localhost:3000/goto/25Hc4dUNR?orgId=1\" target=\"_blank\" class=\"cta-button\">Ir al Dashboard Completo de Grafana</a>\n        </div>\n    </main>\n\n    <footer>\n        <div class=\"container\">\n            <a href=\"/info\" class=\"back-link\">← Volver a la página principal</a>\n            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>\n        </div>\n    </footer>\n</body>\n</html>",
+        "output": "str",
+        "x": 320,
+        "y": 940,
+        "wires": [
+            [
+                "3fe979eeb64f3ca9"
+            ]
+        ]
+    },
+    {
+        "id": "3fe979eeb64f3ca9",
+        "type": "http response",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 510,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "12f5642c12a2aa5a",
+        "type": "http in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "Estilos datos",
+        "url": "/dashboard.css",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 130,
+        "y": 1000,
+        "wires": [
+            [
+                "7ee11926d4e95ed2"
+            ]
+        ]
+    },
+    {
+        "id": "f3fcc723c7165c5b",
+        "type": "http response",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 730,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "14d4ee798d5e0057",
+        "type": "change",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "headers",
+                "pt": "msg",
+                "to": "{     \"content-type\": \"text/css\" }",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 550,
+        "y": 1000,
+        "wires": [
+            [
+                "f3fcc723c7165c5b"
+            ]
+        ]
+    },
+    {
+        "id": "7ee11926d4e95ed2",
+        "type": "template",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": ".dashboard-container {\n    position: relative; \n    width: 100%;\n    height: 0;         \n    padding-top: 56.25%; \n\n    margin-top: 2rem;\n    border-radius: 8px;\n    overflow: hidden; \n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);\n}\n\n.grafana-iframe {\n    position: absolute; \n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    border: none;\n}\n\n.cta-container {\n    text-align: center;\n    padding: 3rem 0;\n}\n\n.cta-container p {\n    font-size: 1.1rem;\n    margin-bottom: 1.5rem;\n}\n\nfooter .back-link {\n    display: block;\n    color: #fff;\n    text-decoration: none;\n    margin-bottom: 1rem;\n    transition: color 0.3s ease;\n}\n\nfooter .back-link:hover {\n    color: var(--primary-color);\n}\n\n",
+        "output": "str",
+        "x": 320,
+        "y": 1000,
+        "wires": [
+            [
+                "14d4ee798d5e0057"
+            ]
+        ]
     },
     {
         "id": "a863383983dc261e",

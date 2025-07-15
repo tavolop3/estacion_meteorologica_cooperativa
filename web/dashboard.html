@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Datos - Red Meteorológica</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Mapa de Datos en Tiempo Real 📍</h1>
+            <p class="subtitle">Datos de las estaciones meteorológicas de La Plata</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard-container">
+            <iframe 
+                src="http://localhost:3000/d-solo/b774f9df-aa30-4dc1-954b-e344bfe4a81a/estacion-meteorologica?orgId=1&from=1752596037118&to=1752596337118&timezone=browser&panelId=5&__feature.dashboardSceneSolo" 
+                class="grafana-iframe" 
+                frameborder="0">
+            </iframe>
+        </div>
+
+        <div class="cta-container">
+            <p>¿Quieres explorar más a fondo? Accede al dashboard completo para ver gráficos históricos, tablas de datos y más.</p>
+            <a href="http://localhost:3000/goto/25Hc4dUNR?orgId=1" target="_blank" class="cta-button">Ir al Dashboard Completo de Grafana</a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <a href="/info" class="back-link">← Volver a la página principal</a>
+            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>
+        </div>
+    </footer>
+</body>
+</html>
