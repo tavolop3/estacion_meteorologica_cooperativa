@@ -166,3 +166,35 @@ footer {
         flex-basis: 100%;
     }
 }
+
+/* Estilos para la nueva sección de Hash */
+.hash-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+#hash-display-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    text-align: left;
+}
+
+#hash-display-container strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--secondary-color);
+}
+
+#hash-display {
+    font-family: 'Courier New', Courier, monospace;
+    word-break: break-all;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}

@@ -66,7 +66,22 @@
                 </div>
             </div>
         </section>
+        
+        <hr>
 
+        <section id="generar-hash">
+            <h2>Generador de Hash 🔐</h2>
+            <p> Haz clic en el botón para generar un hash único (SHA-256). El hash se mostrará en pantalla y se enviará a nuestra base de datos InfluxDB a través de Node-RED.</p>
+            <p> Es importante que guardes el valor del hash. Ese valor te sera de utildiad al comunicarte con nuestro servidor. </p>
+            <p> ¡No te preocupes! Todo lo que deberas de hacer es pegar el valor del hash en la variable CLAVE del archivo config.h que te dimos. </p>
+            <div class="hash-container">
+                <button id="btn-generar-hash" class="cta-button">Generar y Guardar Hash</button>
+                <div id="hash-display-container">
+                    <strong>Hash Generado:</strong>
+                    <code id="hash-display">Aún no se ha generado ningún hash.</code>
+                </div>
+            </div>
+        </section>
         <section id="cta">
             <p>Toda la documentación técnica, el código fuente y los tutoriales están disponibles en nuestro repositorio de GitHub.</p>
             <a href="#" class="cta-button">Ver Guía y Código en GitHub</a>
@@ -78,5 +93,47 @@
             <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>
         </div>
     </footer>
-</body>
+
+    <script>
+        const generateButton = document.getElementById('btn-generar-hash');
+        const hashDisplay = document.getElementById('hash-display');
+
+        async function generateSHA256(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        generateButton.addEventListener('click', async () => {
+            hashDisplay.textContent = 'Generando...';
+            
+            const uniqueString = Date.now().toString() + Math.random().toString();
+
+            const generatedHash = await generateSHA256(uniqueString);
+
+            hashDisplay.textContent = generatedHash;
+
+            try {
+                const response = await fetch('/api/save-hash', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ hash: generatedHash })
+                });
+
+                if (response.ok) {
+                    console.log('Hash enviado y guardado correctamente.');
+                } else {
+                    console.error('Error al guardar el hash. El servidor respondió:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error de red al intentar enviar el hash:', error);
+            }
+        });
+    </script>
+    </body>
 </html>
