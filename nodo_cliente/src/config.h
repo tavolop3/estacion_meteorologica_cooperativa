@@ -2,11 +2,11 @@
 #define CONFIG_H
 
 // Datos de la Red WiFi
-#define WIFI_SSID ""
-#define WIFI_PASS ""
+#define WIFI_SSID "AFIP 2.4GHz"
+#define WIFI_PASS "v3r0n1c4d5"
 
 // Datos del Servidor MQTT
-#define MQTT_BROKER "192.168.0.190"
+#define MQTT_BROKER "broker.mqtt.cool"
 #define MQTT_PORT 1883
 
 // Datos de la Estación
