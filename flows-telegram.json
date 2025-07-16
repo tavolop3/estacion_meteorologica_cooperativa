@@ -1,0 +1,636 @@
+[
+    {
+        "id": "fa9d2af618bbd4d6",
+        "type": "tab",
+        "label": "Flujo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4b9eb268578f9ee5",
+        "type": "influxdb out",
+        "z": "fa9d2af618bbd4d6",
+        "influxdb": "a863383983dc261e",
+        "name": "persistir",
+        "measurement": "datos",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 1220,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "d8cf453ca7ea261e",
+        "type": "cbor",
+        "z": "fa9d2af618bbd4d6",
+        "name": "parsear cbor",
+        "property": "payload",
+        "x": 850,
+        "y": 320,
+        "wires": [
+            [
+                "eae27b6aff919e70"
+            ]
+        ]
+    },
+    {
+        "id": "4b03c88fb2bedcb9",
+        "type": "http in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "Pagina web",
+        "url": "/info",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 420,
+        "wires": [
+            [
+                "1ea3a00fb6f16eb5"
+            ]
+        ]
+    },
+    {
+        "id": "1ea3a00fb6f16eb5",
+        "type": "template",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Red Meteorológica Barrial Cooperativa</title>\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <link href=\"httpsd://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap\" rel=\"stylesheet\">\n</head>\n<body>\n    <header>\n        <div class=\"container\">\n            <h1>Red Meteorológica Barrial Cooperativa 🌦️</h1>\n            <p class=\"subtitle\">Mide el clima de tu barrio en tiempo real y sé parte de una red ciudadana de datos abiertos.</p>\n        </div>\n    </header>\n\n    <main class=\"container\">\n        <section id=\"descripcion\">\n            <h2>¿En qué consiste el Proyecto?</h2>\n            <p>Nuestra red es una iniciativa comunitaria para crear un mapa meteorológico detallado y en tiempo real de nuestro barrio. Utilizamos tecnología accesible como el ESP32 para que cualquier vecino pueda construir su propia estación (nodo), medir variables como <strong>temperatura, humedad y presión</strong>, y compartir los datos de forma automática con un servidor central. El objetivo es simple: tener datos climáticos precisos, abiertos y generados por nosotros mismos.</p>\n        </section>\n\n        <hr>\n\n        <section id=\"arquitectura\">\n            <h2>¿Cómo Funciona? ⚙️</h2>\n            <p>La arquitectura del sistema es simple y robusta, diseñada para ser escalable y fácil de mantener. Se compone de dos partes principales: los nodos cliente y el nodo central.</p>\n            <div class=\"cards-container\">\n                <div class=\"card\">\n                    <h3>1. Nodos Cliente (Tu Estación)</h3>\n                    <p>Cada estación meteorológica es un \"nodo cliente\". Está construida con un microcontrolador <strong>ESP32</strong> y sensores. Su única tarea es recolectar datos y enviarlos de forma segura a nuestro servidor a través de Wi-Fi usando el protocolo <strong>MQTT</strong>.</p>\n                </div>\n                <div class=\"card\">\n                    <h3>2. Nodo Central (Nuestro Servidor)</h3>\n                    <p>El servidor recibe y orquesta todos los datos. Un <strong>Broker MQTT</strong> actúa como receptor. Luego, <strong>Node-RED</strong> procesa y estandariza la información para almacenarla en la base de datos <strong>InfluxDB</strong>, que está optimizada para series temporales. Finalmente, ¡la magia ocurre!</p>\n                </div>\n                <div class=\"card\">\n                    <h3>3. Visualización (El Dashboard)</h3>\n                    <p><strong>Grafana</strong> se conecta a la base de datos y transforma los números en información útil. Crea gráficos, mapas de calor y tablas que se muestran en un dashboard público. Así, todos podemos ver el estado del clima en el barrio de un solo vistazo.</p>\n                </div>\n            </div>\n        </section>\n\n        <hr>\n\n        <section id=\"como-sumarse\">\n            <h2>¡Quiero Sumarme! ¿Cómo Empiezo?</h2>\n            <p>¡Excelente! Unirte al proyecto es más fácil de lo que crees. Solo necesitas ganas de aprender y algunos componentes electrónicos básicos. Hemos preparado una guía completa con todo lo que necesitas.</p>\n            <div class=\"pasos\">\n                <div class=\"paso\">\n                    <span class=\"numero\">1</span>\n                    <p><strong>Reúne los componentes:</strong> Necesitarás un ESP32, sensores (como el BME280 o DHT22) y algunos cables. En nuestra guía encontrarás una lista detallada con enlaces de compra sugeridos.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">2</span>\n                    <p><strong>Monta tu estación:</strong> Sigue nuestros tutoriales paso a paso para ensamblar el hardware. ¡No necesitas ser un experto en electrónica!</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">3</span>\n                    <p><strong>Carga el código:</strong> Te proporcionamos el código listo para cargar en tu ESP32. Solo tendrás que configurar tu red Wi-Fi y un identificador único para tu estación.</p>\n                </div>\n                <div class=\"paso\">\n                    <span class=\"numero\">4</span>\n                    <p><strong>¡Listo!</strong> Una vez encendida, tu estación comenzará a enviar datos automáticamente. Podrás ver tus mediciones en el dashboard general de la red.</p>\n                </div>\n            </div>\n        </section>\n\n        <section id=\"cta\">\n            <p>Toda la documentación técnica, el código fuente y los tutoriales están disponibles en nuestro repositorio de GitHub.</p>\n            <a href=\"#\" class=\"cta-button\">Ver Guía y Código en GitHub</a>\n        </section>\n\n  <button onclick=\"generarYEnviar()\">Generar Hash y Enviar</button>\n  <div id=\"hashDisplay\">Hash generado: <span id=\"hash\"></span></div>\n\n  <script>\n    function generarHash() {\n      // Hash aleatorio en base a valores hexadecimales\n      return crypto.randomUUID().replace(/-/g, '');\n    }\n\n    async function enviarAInflux(hash) {\n      const org = \"tu_organizacion\";\n      const bucket = \"tu_bucket\";\n      const token = \"tu_token\";\n\n      const url = `https://us-east-1-1.aws.cloud2.influxdata.com/api/v2/write?org=${org}&bucket=${bucket}&precision=ns`;\n\n      // Línea en Influx Line Protocol\n      const data = `hashes value=\"${hash}\"`;\n\n      try {\n        const response = await fetch(url, {\n          method: \"POST\",\n          headers: {\n            \"Authorization\": `Token ${token}`,\n            \"Content-Type\": \"text/plain\"\n          },\n          body: data\n        });\n\n        if (response.ok) {\n          console.log(\"Hash enviado correctamente.\");\n        } else {\n          console.error(\"Error al enviar a Influx:\", await response.text());\n        }\n      } catch (error) {\n        console.error(\"Error de red:\", error);\n      }\n    }\n\n    function generarYEnviar() {\n      const hash = generarHash();\n      document.getElementById(\"hash\").textContent = hash;\n      enviarAInflux(hash);\n    }\n  </script>\n\n    </main>\n\n    <footer>\n        <div class=\"container\">\n            <p>&copy; 2025 Red Meteorológica Cooperativa. Un proyecto de ciencia ciudadana para todos.</p>\n        </div>\n    </footer>\n</body>\n</html>",
+        "output": "str",
+        "x": 340,
+        "y": 420,
+        "wires": [
+            [
+                "f3ddd96e0e75a71e"
+            ]
+        ]
+    },
+    {
+        "id": "f3ddd96e0e75a71e",
+        "type": "http response",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 510,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "1e2ebcedcc0ffe9f",
+        "type": "http in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "Estilos",
+        "url": "/style.css",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 130,
+        "y": 480,
+        "wires": [
+            [
+                "ca4f0c9d1c665f14"
+            ]
+        ]
+    },
+    {
+        "id": "0c621c0875175d84",
+        "type": "http response",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "72025deca8b58d54",
+        "type": "change",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "headers",
+                "pt": "msg",
+                "to": "{     \"content-type\": \"text/css\" }",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 570,
+        "y": 480,
+        "wires": [
+            [
+                "0c621c0875175d84"
+            ]
+        ]
+    },
+    {
+        "id": "ca4f0c9d1c665f14",
+        "type": "template",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": ":root {\n    --primary-color: #007BFF;\n    --secondary-color: #343A40;\n    --background-color: #f8f9fa;\n    --text-color: #212529;\n    --card-bg: #ffffff;\n    --border-color: #dee2e6;\n}\n\nbody {\n    font-family: 'Roboto', sans-serif;\n    line-height: 1.6;\n    color: var(--text-color);\n    background-color: var(--background-color);\n    margin: 0;\n    padding: 0;\n}\n\n.container {\n    max-width: 960px;\n    margin: 0 auto;\n    padding: 0 20px;\n}\n\nheader {\n    background-color: var(--secondary-color);\n    color: #ffffff;\n    padding: 3rem 0;\n    text-align: center;\n    border-bottom: 5px solid var(--primary-color);\n}\n\nheader h1 {\n    font-size: 2.8rem;\n    font-weight: 700;\n    margin: 0;\n}\n\nheader .subtitle {\n    font-size: 1.2rem;\n    font-weight: 300;\n    margin-top: 0.5rem;\n}\n\nmain {\n    padding: 2rem 0;\n}\n\nsection {\n    padding: 2rem 0;\n}\n\nsection h2 {\n    text-align: center;\n    font-size: 2.2rem;\n    color: var(--secondary-color);\n    margin-bottom: 2rem;\n    position: relative;\n}\n\nhr {\n    border: 0;\n    height: 1px;\n    background: var(--border-color);\n    margin: 1rem 0;\n}\n\n.cards-container {\n    display: flex;\n    justify-content: space-between;\n    gap: 20px;\n    flex-wrap: wrap;\n}\n\n.card {\n    background: var(--card-bg);\n    border-radius: 8px;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);\n    padding: 1.8rem;\n    text-align: center;\n    flex-basis: calc(33.333% - 20px);\n    transition: transform 0.3s ease, box-shadow 0.3s ease;\n}\n\n.card:hover {\n    transform: translateY(-5px);\n    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);\n}\n\n.card h3 {\n    color: var(--primary-color);\n    font-size: 1.4rem;\n    margin-top: 0;\n}\n\n.pasos {\n    display: flex;\n    flex-direction: column;\n    gap: 1.5rem;\n}\n\n.paso {\n    display: flex;\n    align-items: center;\n    background: var(--card-bg);\n    padding: 1rem 1.5rem;\n    border-radius: 8px;\n    border-left: 5px solid var(--primary-color);\n}\n\n.paso .numero {\n    font-size: 2rem;\n    font-weight: 700;\n    color: var(--primary-color);\n    margin-right: 1.5rem;\n}\n\n.paso p {\n    margin: 0;\n}\n\n#cta {\n    text-align: center;\n    padding: 3rem 0;\n}\n\n#cta p {\n    font-size: 1.1rem;\n    margin-bottom: 1.5rem;\n}\n\n.cta-button {\n    background-color: var(--primary-color);\n    color: #ffffff;\n    padding: 15px 30px;\n    text-decoration: none;\n    font-size: 1.2rem;\n    font-weight: 700;\n    border-radius: 5px;\n    transition: background-color 0.3s ease, transform 0.2s ease;\n}\n\n.cta-button:hover {\n    background-color: #0056b3;\n    transform: scale(1.05);\n}\n\nfooter {\n    background-color: var(--secondary-color);\n    color: #ccc;\n    text-align: center;\n    padding: 1.5rem 0;\n    margin-top: 2rem;\n}\n\n@media (max-width: 768px) {\n    header h1 {\n        font-size: 2rem;\n    }\n\n    .cards-container {\n        flex-direction: column;\n    }\n    \n    .card {\n        flex-basis: 100%;\n    }\n}",
+        "output": "str",
+        "x": 340,
+        "y": 480,
+        "wires": [
+            [
+                "72025deca8b58d54"
+            ]
+        ]
+    },
+    {
+        "id": "f363af2641f6281c",
+        "type": "delay",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "pauseType": "timed",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "10",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": true,
+        "outputs": 1,
+        "x": 680,
+        "y": 220,
+        "wires": [
+            [
+                "d8cf453ca7ea261e"
+            ]
+        ]
+    },
+    {
+        "id": "0251a99c84adb53f",
+        "type": "influxdb in",
+        "z": "fa9d2af618bbd4d6",
+        "influxdb": "a863383983dc261e",
+        "name": "hashes",
+        "query": "SELECT hash \nFROM hashes",
+        "rawOutput": true,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "organisation",
+        "x": 360,
+        "y": 220,
+        "wires": [
+            [
+                "70bb2d95ffec9124"
+            ]
+        ]
+    },
+    {
+        "id": "49608e675d99cd25",
+        "type": "inject",
+        "z": "fa9d2af618bbd4d6",
+        "name": "wakeup query",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 220,
+        "wires": [
+            [
+                "0251a99c84adb53f"
+            ]
+        ]
+    },
+    {
+        "id": "70bb2d95ffec9124",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "formatear topicos",
+        "func": "const series = msg.payload['results'][0].series[0];\nconst columns = series.columns; // [\"time\", \"hash\"]\nconst values = series.values;   // [[\"...\", 1], [\"...\", 1]]\n\n// Encontrar dinámicamente en qué posición está la columna 'hash'\nconst hashIndex = columns.indexOf('hash');\nif (hashIndex === -1) {\n    node.error(\"La columna 'hash' no se encontró en los resultados de InfluxDB.\");\n    return null; // Detiene el flujo si no existe la columna\n}\n\n// Usar un Set para extraer los hashes y eliminar duplicados automáticamente\nconst topicSet = new Set();\nfor (const row of values) {\n    // Extrae el hash usando el índice que encontramos\n    const hash = row[hashIndex];\n    if (hash !== null && hash !== undefined) {\n        topicSet.add(`barrio/estaciones/${hash}`);\n    }\n}\n\n// Si no se encontraron tópicos, detener el flujo\nif (topicSet.size === 0) {\n    node.warn(\"No se encontraron hashes válidos para crear tópicos.\");\n    return null;\n}\n\n// Construir el payload final con los tópicos únicos\nmsg.topic = Array.from(topicSet) // Convierte el Set a un Array\nmsg.action = \"subscribe\"\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 320,
+        "wires": [
+            [
+                "74695c79baad5356"
+            ]
+        ]
+    },
+    {
+        "id": "74695c79baad5356",
+        "type": "mqtt in",
+        "z": "fa9d2af618bbd4d6",
+        "name": "mqtt in dinamico",
+        "topic": "",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "57a306eb47001b96",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 1,
+        "x": 520,
+        "y": 320,
+        "wires": [
+            [
+                "f363af2641f6281c"
+            ]
+        ]
+    },
+    {
+        "id": "77075d2601258ec0",
+        "type": "comment",
+        "z": "fa9d2af618bbd4d6",
+        "name": "Cada 1 minuto",
+        "info": "",
+        "x": 180,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "1f812549dffd1df1",
+        "type": "influxdb in",
+        "z": "fa9d2af618bbd4d6",
+        "influxdb": "a863383983dc261e",
+        "name": "query datos",
+        "query": "SELECT *\nFROM datos",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "organisation",
+        "x": 370,
+        "y": 600,
+        "wires": [
+            [
+                "526338d4a7226f75"
+            ]
+        ]
+    },
+    {
+        "id": "57e9b11e1540173b",
+        "type": "inject",
+        "z": "fa9d2af618bbd4d6",
+        "name": "repetir cada 1 dia",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "3000",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 600,
+        "wires": [
+            [
+                "1f812549dffd1df1"
+            ]
+        ]
+    },
+    {
+        "id": "526338d4a7226f75",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "calcular promedios",
+        "func": "// Aplanar el array de arrays\nlet registros = msg.payload.flat();\n\n// Agrupar por localidad\nlet acumulador = {};\n\nfor (let registro of registros) {\n    let loc = registro.localidad;\n    let station = registro.station_id;\n\n    if (!acumulador[loc]) {\n        acumulador[loc] = {\n            sumaTemp: 0,\n            sumaHum: 0,\n            sumaPresion: 0,\n            sumaLluvia: 0,\n            sumaViento: 0,\n            sumaRadiacion: 0,\n            sumaCalidadAire: 0,\n            sumaSensacionTermica: 0,\n            cantidad: 0,\n            estaciones: new Set()\n        };\n    }\n\n    let temp = registro.temperature ?? 0;\n    let viento = registro.viento ?? 0;\n\n    // Fórmula de sensación térmica (si temperatura y viento existen)\n    let st = 13.12 + 0.6215 * temp - 11.37 * Math.pow(viento, 0.16) + 0.3965 * temp * Math.pow(viento, 0.16);\n\n    acumulador[loc].sumaTemp += temp;\n    acumulador[loc].sumaHum += registro.humidity ?? 0;\n    acumulador[loc].sumaPresion += registro.presion ?? 0;\n    acumulador[loc].sumaLluvia += registro.lluvia ?? 0;\n    acumulador[loc].sumaViento += viento;\n    acumulador[loc].sumaRadiacion += registro.radiacion_solar ?? 0;\n    acumulador[loc].sumaCalidadAire += registro.calidad_aire ?? 0;\n    acumulador[loc].sumaSensacionTermica += st;\n    acumulador[loc].cantidad += 1;\n    acumulador[loc].estaciones.add(station);\n}\n\n// Armar resultado como string legible\nlet texto = \"🌤️ Actualización diaria del clima por localidad\\n\\n\";\n\nfor (let loc in acumulador) {\n    let data = acumulador[loc];\n    let cantidad = data.cantidad;\n\n    let promedioTemp = (data.sumaTemp / cantidad).toFixed(2);\n    let promedioHum = (data.sumaHum / cantidad).toFixed(2);\n    let promedioPresion = (data.sumaPresion / cantidad).toFixed(2);\n    let promedioLluvia = (data.sumaLluvia / cantidad).toFixed(2);\n    let promedioViento = (data.sumaViento / cantidad).toFixed(2);\n    let promedioRadiacion = (data.sumaRadiacion / cantidad).toFixed(2);\n    let promedioCalidadAire = (data.sumaCalidadAire / cantidad).toFixed(2);\n    let promedioST = (data.sumaSensacionTermica / cantidad).toFixed(2);\n    let cantidadEstaciones = data.estaciones.size;\n\n    texto += `${loc}:\\n`;\n    texto += `  🌡️ Temp promedio: ${promedioTemp} °C\\n`;\n    texto += `  💧 Humedad promedio: ${promedioHum} %\\n`;\n    texto += `  🧊 Sensación térmica promedio: ${promedioST} °C\\n`;\n    texto += `  📉 Presión promedio: ${promedioPresion} hPa\\n`;\n    texto += `  🌧️ Lluvia promedio: ${promedioLluvia} mm\\n`;\n    texto += `  🌬️ Viento promedio: ${promedioViento} km/h\\n`;\n    texto += `  🌞 Radiación solar: ${promedioRadiacion} W/m²\\n`;\n    texto += `  🧪 Calidad del aire: ${promedioCalidadAire} ppm\\n`;\n    texto += `  📊 Registros: ${cantidad}\\n`;\n    texto += `  🛰️ Estaciones únicas: ${cantidadEstaciones}\\n\\n`;\n}\n\nmsg.payload = {\n    chatId: -4858641786,\n    type: \"message\",\n    content: texto.trim()\n};\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 600,
+        "wires": [
+            [
+                "955296ee03f61390"
+            ]
+        ]
+    },
+    {
+        "id": "955296ee03f61390",
+        "type": "telegram sender",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "bot": "39ec5e2cc0f18a56",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 870,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "eae27b6aff919e70",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "formatear datos y faltantes",
+        "func": "let datos = msg.payload;\n\n// Objeto principal con solo los campos válidos\nlet medidas = {};\n\nif (datos?.humedad !== undefined) medidas.humidity = datos.humedad;\nif (datos?.temperatura !== undefined) medidas.temperature = datos.temperatura;\nif (datos?.sensacion_termica !== undefined) medidas.sensacion_termica = datos.sensacion_termica;\nif (datos?.presion !== undefined) medidas.presion = datos.presion;\nif (datos?.lluvia !== undefined) medidas.lluvia = datos.lluvia;\nif (datos?.viento !== undefined) medidas.viento = datos.viento;\nif (datos?.radiacion_solar !== undefined) medidas.radiacion_solar = datos.radiacion_solar;\nif (datos?.calidad_aire !== undefined) medidas.calidad_aire = datos.calidad_aire;\n\nlet info = {\n    lugar: \"La Plata\",\n    station_id: datos?.station_id ?? \"desconocido\",\n    lat: parseFloat(datos?.ubicacion?.lat ?? 0),\n    lon: parseFloat(datos?.ubicacion?.lon ?? 0),\n    localidad: datos?.localidad ?? \"desconocida\"\n};\n\nmsg.payload = [medidas, info];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 220,
+        "wires": [
+            [
+                "4b9eb268578f9ee5"
+            ]
+        ]
+    },
+    {
+        "id": "d5b66ff0e009c901",
+        "type": "telegram command",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "command": "/localidad",
+        "description": "Información especifica para la localidad",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "39ec5e2cc0f18a56",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 140,
+        "y": 760,
+        "wires": [
+            [
+                "2a656ef37333e33b"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "41024fdce86d020b",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "calcular promedio de localidad",
+        "func": "// Aplanar el array de arrays\nlet registros = msg.payload.flat();\n\n// Localidad que vino como comando (guardada previamente)\nlet localidadSolicitada = flow.get(\"localidadSolicitada\");\n\n// Agrupar por localidad\nlet acumulador = {};\n\nfor (let registro of registros) {\n    let loc = registro.localidad.toUpperCase();\n    let station = registro.station_id;\n\n    if (!acumulador[loc]) {\n        acumulador[loc] = {\n            sumaTemp: 0,\n            sumaHum: 0,\n            sumaPresion: 0,\n            sumaLluvia: 0,\n            sumaViento: 0,\n            sumaRadiacion: 0,\n            sumaCalidadAire: 0,\n            sumaSensacionTermica: 0,\n            cantidad: 0,\n            estaciones: new Set()\n        };\n    }\n\n    let temp = registro.temperature ?? 0;\n    let viento = registro.viento ?? 0;\n\n    // Sensación térmica (fórmula Wind Chill)\n    let st = 13.12 + 0.6215 * temp - 11.37 * Math.pow(viento, 0.16) + 0.3965 * temp * Math.pow(viento, 0.16);\n\n    acumulador[loc].sumaTemp += temp;\n    acumulador[loc].sumaHum += registro.humidity ?? 0;\n    acumulador[loc].sumaPresion += registro.presion ?? 0;\n    acumulador[loc].sumaLluvia += registro.lluvia ?? 0;\n    acumulador[loc].sumaViento += viento;\n    acumulador[loc].sumaRadiacion += registro.radiacion_solar ?? 0;\n    acumulador[loc].sumaCalidadAire += registro.calidad_aire ?? 0;\n    acumulador[loc].sumaSensacionTermica += st;\n    acumulador[loc].cantidad += 1;\n    acumulador[loc].estaciones.add(station);\n}\n\n// Armar resultado como string legible\nlet texto = \"🌤️ Actualización del clima para localidad solicitada\\n\\n\";\n\nlet loc = localidadSolicitada?.toUpperCase();\n\nif (loc && acumulador[loc]) {\n    let data = acumulador[loc];\n    let cantidad = data.cantidad;\n\n    let promedioTemp = (data.sumaTemp / cantidad).toFixed(2);\n    let promedioHum = (data.sumaHum / cantidad).toFixed(2);\n    let promedioPresion = (data.sumaPresion / cantidad).toFixed(2);\n    let promedioLluvia = (data.sumaLluvia / cantidad).toFixed(2);\n    let promedioViento = (data.sumaViento / cantidad).toFixed(2);\n    let promedioRadiacion = (data.sumaRadiacion / cantidad).toFixed(2);\n    let promedioCalidadAire = (data.sumaCalidadAire / cantidad).toFixed(2);\n    let promedioST = (data.sumaSensacionTermica / cantidad).toFixed(2);\n    let cantidadEstaciones = data.estaciones.size;\n\n    texto += `${loc}:\\n`;\n    texto += `  🌡️ Temp promedio: ${promedioTemp} °C\\n`;\n    texto += `  💧 Humedad promedio: ${promedioHum} %\\n`;\n    texto += `  🧊 Sensación térmica promedio: ${promedioST} °C\\n`;\n    texto += `  📉 Presión promedio: ${promedioPresion} hPa\\n`;\n    texto += `  🌧️ Lluvia promedio: ${promedioLluvia} mm\\n`;\n    texto += `  🌬️ Viento promedio: ${promedioViento} km/h\\n`;\n    texto += `  🌞 Radiación solar promedio: ${promedioRadiacion} W/m²\\n`;\n    texto += `  🧪 Calidad del aire promedio: ${promedioCalidadAire} ppm\\n`;\n    texto += `  📊 Registros: ${cantidad}\\n`;\n    texto += `  🛰️ Estaciones únicas: ${cantidadEstaciones}\\n\\n`;\n} else {\n    texto += `❌ No se encontraron datos para la localidad: ${localidadSolicitada || \"desconocida\"}`;\n}\n\nmsg.payload = {\n    chatId: -4858641786,\n    type: \"message\",\n    content: texto.trim()\n};\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 760,
+        "wires": [
+            [
+                "507c1ae106e5c433"
+            ]
+        ]
+    },
+    {
+        "id": "5b0db63b33ae452c",
+        "type": "influxdb in",
+        "z": "fa9d2af618bbd4d6",
+        "influxdb": "a863383983dc261e",
+        "name": "query datos",
+        "query": "SELECT *\nFROM datos",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "organisation",
+        "x": 590,
+        "y": 760,
+        "wires": [
+            [
+                "41024fdce86d020b"
+            ]
+        ]
+    },
+    {
+        "id": "507c1ae106e5c433",
+        "type": "telegram sender",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "bot": "39ec5e2cc0f18a56",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1170,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2a656ef37333e33b",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "guardar localidad",
+        "func": "flow.set(\"localidadSolicitada\", msg.payload.content.trim().toUpperCase());\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 760,
+        "wires": [
+            [
+                "5b0db63b33ae452c"
+            ]
+        ]
+    },
+    {
+        "id": "85d828cf55b856bd",
+        "type": "telegram command",
+        "z": "fa9d2af618bbd4d6",
+        "name": "/help",
+        "command": "/help",
+        "description": "Muestra comandos disponibles",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "39ec5e2cc0f18a56",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 130,
+        "y": 700,
+        "wires": [
+            [
+                "e0b2c50d82ee7484"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "e0b2c50d82ee7484",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "setear texto de ayuda",
+        "func": "let texto = \"/localidad {localidad} -> ver datos de la localidad \\n\";\ntexto += \"/localidades -> ver datos generales\"\n \nmsg.payload = {\n    chatId: -4858641786,\n    type: \"message\",\n    content: texto,\n};\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 680,
+        "wires": [
+            [
+                "bc26b754dc85af62"
+            ]
+        ]
+    },
+    {
+        "id": "bc26b754dc85af62",
+        "type": "telegram sender",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "bot": "39ec5e2cc0f18a56",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 870,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "03b29073d363d553",
+        "type": "telegram command",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "command": "/localidades",
+        "description": "Información general",
+        "registercommand": true,
+        "language": "",
+        "scope": "default",
+        "bot": "39ec5e2cc0f18a56",
+        "strict": false,
+        "hasresponse": true,
+        "useregex": false,
+        "removeregexcommand": false,
+        "outputs": 2,
+        "x": 150,
+        "y": 640,
+        "wires": [
+            [
+                "1f812549dffd1df1"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "a863383983dc261e",
+        "type": "influxdb",
+        "hostname": "influxdb",
+        "port": 8086,
+        "protocol": "http",
+        "database": "mediciones",
+        "name": "influxdb",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.x",
+        "url": "http://localhost:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "57a306eb47001b96",
+        "type": "mqtt-broker",
+        "name": "MQTT local",
+        "broker": "mqtt",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "5",
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "39ec5e2cc0f18a56",
+        "type": "telegram bot",
+        "botname": "@estacion_meteorologica_coop_bot",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    }
+]

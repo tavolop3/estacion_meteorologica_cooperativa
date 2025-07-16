@@ -13,7 +13,17 @@
 #define ESTACION_ID "casa_mati"
 #define LATITUD -34.9214
 #define LONGITUD -57.9545
-#define LOCALIDAD "TOLOSA"
+#define LOCALIDAD "Los Hornos"
+
+// Variables de configuración para el envío de datos, true para enviar, false para no enviar
+#define ENVIAR_TEMPERATURA true
+#define ENVIAR_HUMEDAD true
+#define ENVIAR_SENSACION_TERMICA true
+#define ENVIAR_PRESION true
+#define ENVIAR_LLUVIA true
+#define ENVIAR_VIENTO true
+#define ENVIAR_RADIACION_SOLAR true
+#define ENVIAR_CALIDAD_AIRE true
 
 // Clave que dio la página web
 #define CLAVE 1
