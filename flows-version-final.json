@@ -257,7 +257,7 @@
         "topic": "",
         "qos": "2",
         "datatype": "auto-detect",
-        "broker": "57a306eb47001b96",
+        "broker": "054967e0a823016e",
         "nl": false,
         "rap": true,
         "rh": 0,
@@ -329,7 +329,7 @@
         "type": "function",
         "z": "fa9d2af618bbd4d6",
         "name": "calcular promedios",
-        "func": "// Aplanar el array de arrays\nlet registros = msg.payload.flat();\n\n// Agrupar por localidad\nlet acumulador = {};\n\nfor (let registro of registros) {\n    let loc = registro.localidad;\n    let station = registro.station_id;\n\n    if (!acumulador[loc]) {\n        acumulador[loc] = {\n            sumaTemp: 0,\n            sumaHum: 0,\n            sumaPresion: 0,\n            sumaLluvia: 0,\n            sumaViento: 0,\n            sumaRadiacion: 0,\n            sumaCalidadAire: 0,\n            sumaSensacionTermica: 0,\n            cantidad: 0,\n            estaciones: new Set()\n        };\n    }\n\n    let temp = registro.temperature ?? 0;\n    let viento = registro.viento ?? 0;\n\n    // Fórmula de sensación térmica (si temperatura y viento existen)\n    let st = 13.12 + 0.6215 * temp - 11.37 * Math.pow(viento, 0.16) + 0.3965 * temp * Math.pow(viento, 0.16);\n\n    acumulador[loc].sumaTemp += temp;\n    acumulador[loc].sumaHum += registro.humidity ?? 0;\n    acumulador[loc].sumaPresion += registro.presion ?? 0;\n    acumulador[loc].sumaLluvia += registro.lluvia ?? 0;\n    acumulador[loc].sumaViento += viento;\n    acumulador[loc].sumaRadiacion += registro.radiacion_solar ?? 0;\n    acumulador[loc].sumaCalidadAire += registro.calidad_aire ?? 0;\n    acumulador[loc].sumaSensacionTermica += st;\n    acumulador[loc].cantidad += 1;\n    acumulador[loc].estaciones.add(station);\n}\n\n// Armar resultado como string legible\nlet texto = \"🌤️ Actualización diaria del clima por localidad\\n\\n\";\n\nfor (let loc in acumulador) {\n    let data = acumulador[loc];\n    let cantidad = data.cantidad;\n\n    let promedioTemp = (data.sumaTemp / cantidad).toFixed(2);\n    let promedioHum = (data.sumaHum / cantidad).toFixed(2);\n    let promedioPresion = (data.sumaPresion / cantidad).toFixed(2);\n    let promedioLluvia = (data.sumaLluvia / cantidad).toFixed(2);\n    let promedioViento = (data.sumaViento / cantidad).toFixed(2);\n    let promedioRadiacion = (data.sumaRadiacion / cantidad).toFixed(2);\n    let promedioCalidadAire = (data.sumaCalidadAire / cantidad).toFixed(2);\n    let promedioST = (data.sumaSensacionTermica / cantidad).toFixed(2);\n    let cantidadEstaciones = data.estaciones.size;\n\n    texto += `${loc}:\\n`;\n    texto += `  🌡️ Temp promedio: ${promedioTemp} °C\\n`;\n    texto += `  💧 Humedad promedio: ${promedioHum} %\\n`;\n    texto += `  🧊 Sensación térmica promedio: ${promedioST} °C\\n`;\n    texto += `  📉 Presión promedio: ${promedioPresion} hPa\\n`;\n    texto += `  🌧️ Lluvia promedio: ${promedioLluvia} mm\\n`;\n    texto += `  🌬️ Viento promedio: ${promedioViento} km/h\\n`;\n    texto += `  🌞 Radiación solar: ${promedioRadiacion} W/m²\\n`;\n    texto += `  🧪 Calidad del aire: ${promedioCalidadAire} ppm\\n`;\n    texto += `  📊 Registros: ${cantidad}\\n`;\n    texto += `  🛰️ Estaciones únicas: ${cantidadEstaciones}\\n\\n`;\n}\n\nmsg.payload = {\n    chatId: -4858641786,\n    type: \"message\",\n    content: texto.trim()\n};\nreturn msg;\n",
+        "func": "// Aplanar el array de arrays\nlet registros = msg.payload.flat();\n\n// Agrupar por localidad\nlet acumulador = {};\n\nfor (let registro of registros) {\n    let loc = registro.localidad;\n    let station = registro.station_id;\n\n    if (!acumulador[loc]) {\n        acumulador[loc] = {\n            sumaTemp: 0,\n            sumaHum: 0,\n            sumaPresion: 0,\n            sumaLluvia: 0,\n            sumaViento: 0,\n            sumaRadiacion: 0,\n            sumaCalidadAire: 0,\n            sumaSensacionTermica: 0,\n            cantidad: 0,\n            estaciones: new Set()\n        };\n    }\n\n    let temp = registro.temperature ?? 0;\n    let viento = registro.viento ?? 0;\n\n    // Fórmula de sensación térmica (si temperatura y viento existen)\n    let st = 13.12 + 0.6215 * temp - 11.37 * Math.pow(viento, 0.16) + 0.3965 * temp * Math.pow(viento, 0.16);\n\n    acumulador[loc].sumaTemp += temp;\n    acumulador[loc].sumaHum += registro.humidity ?? 0;\n    acumulador[loc].sumaPresion += registro.presion ?? 0;\n    acumulador[loc].sumaLluvia += registro.lluvia ?? 0;\n    acumulador[loc].sumaViento += viento;\n    acumulador[loc].sumaRadiacion += registro.radiacion_solar ?? 0;\n    acumulador[loc].sumaCalidadAire += registro.calidad_aire ?? 0;\n    acumulador[loc].sumaSensacionTermica += st;\n    acumulador[loc].cantidad += 1;\n    acumulador[loc].estaciones.add(station);\n}\n\n// Armar resultado como string legible\nlet texto = \"🌤️ Actualización diaria del clima por localidad\\n\\n\";\nlet resumenData = {};\n\nfor (let loc in acumulador) {\n    let data = acumulador[loc];\n    let cantidad = data.cantidad;\n\n    let promedioTemp = (data.sumaTemp / cantidad).toFixed(2);\n    let promedioHum = (data.sumaHum / cantidad).toFixed(2);\n    let promedioPresion = (data.sumaPresion / cantidad).toFixed(2);\n    let promedioLluvia = (data.sumaLluvia / cantidad).toFixed(2);\n    let promedioViento = (data.sumaViento / cantidad).toFixed(2);\n    let promedioRadiacion = (data.sumaRadiacion / cantidad).toFixed(2);\n    let promedioCalidadAire = (data.sumaCalidadAire / cantidad).toFixed(2);\n    let promedioST = (data.sumaSensacionTermica / cantidad).toFixed(2);\n    let cantidadEstaciones = data.estaciones.size;\n\n    texto += `${loc}:\\n`;\n    texto += `  🌡️ Temp promedio: ${promedioTemp} °C\\n`;\n    texto += `  💧 Humedad promedio: ${promedioHum} %\\n`;\n    texto += `  🧊 Sensación térmica promedio: ${promedioST} °C\\n`;\n    texto += `  📉 Presión promedio: ${promedioPresion} hPa\\n`;\n    texto += `  🌧️ Lluvia promedio: ${promedioLluvia} mm\\n`;\n    texto += `  🌬️ Viento promedio: ${promedioViento} km/h\\n`;\n    texto += `  🌞 Radiación solar: ${promedioRadiacion} W/m²\\n`;\n    texto += `  🧪 Calidad del aire: ${promedioCalidadAire} ppm\\n`;\n    texto += `  📊 Registros: ${cantidad}\\n`;\n    texto += `  🛰️ Estaciones únicas: ${cantidadEstaciones}\\n\\n`;\n\n    // Guardar en objeto para MQTT\n    resumenData[loc] = {\n        temperatura: Number(promedioTemp),\n        humedad: Number(promedioHum),\n        sensacion_termica: Number(promedioST),\n        presion: Number(promedioPresion),\n        lluvia: Number(promedioLluvia),\n        viento: Number(promedioViento),\n        radiacion_solar: Number(promedioRadiacion),\n        calidad_aire: Number(promedioCalidadAire),\n        cantidad_registros: cantidad,\n        estaciones: cantidadEstaciones\n    };\n}\n\nmsg.payload = {\n    chatId: -4858641786,\n    type: \"message\",\n    content: texto.trim(),\n    data: resumenData\n};\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -340,7 +340,8 @@
         "y": 600,
         "wires": [
             [
-                "955296ee03f61390"
+                "955296ee03f61390",
+                "c0c79c895a926e44"
             ]
         ]
     },
@@ -561,6 +562,58 @@
         ]
     },
     {
+        "id": "1576d03ecf204450",
+        "type": "mqtt out",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "topic": "/datos/resumen",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "054967e0a823016e",
+        "x": 1240,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "c0c79c895a926e44",
+        "type": "function",
+        "z": "fa9d2af618bbd4d6",
+        "name": "setear datos",
+        "func": "msg.payload = msg.payload.data;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 540,
+        "wires": [
+            [
+                "50a85b2929996285"
+            ]
+        ]
+    },
+    {
+        "id": "50a85b2929996285",
+        "type": "cbor",
+        "z": "fa9d2af618bbd4d6",
+        "name": "",
+        "property": "payload",
+        "x": 1050,
+        "y": 540,
+        "wires": [
+            [
+                "1576d03ecf204450"
+            ]
+        ]
+    },
+    {
         "id": "a863383983dc261e",
         "type": "influxdb",
         "hostname": "influxdb",
@@ -576,15 +629,15 @@
         "rejectUnauthorized": true
     },
     {
-        "id": "57a306eb47001b96",
+        "id": "054967e0a823016e",
         "type": "mqtt-broker",
-        "name": "MQTT local",
-        "broker": "mqtt",
+        "name": "cool",
+        "broker": "broker.mqtt.cool",
         "port": 1883,
         "clientid": "",
         "autoConnect": true,
         "usetls": false,
-        "protocolVersion": "5",
+        "protocolVersion": 4,
         "keepalive": 60,
         "cleansession": true,
         "autoUnsubscribe": true,
