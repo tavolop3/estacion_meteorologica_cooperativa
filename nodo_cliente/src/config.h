@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 // Datos de la Red WiFi
-#define WIFI_SSID "AFIP 2.4GHz"
-#define WIFI_PASS "v3r0n1c4d5"
+#define WIFI_SSID ""
+#define WIFI_PASS ""
 
 // Datos del Servidor MQTT
 #define MQTT_BROKER "broker.mqtt.cool"
