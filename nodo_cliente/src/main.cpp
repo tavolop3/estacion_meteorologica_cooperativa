@@ -122,19 +122,12 @@ void publicarDatosSensor() {
   client.publish(topic.c_str(), buffer, encodedLength);
 }
 
-void callback(char *topic, byte *payload, unsigned int length) {
-  Serial.print("📥 Mensaje recibido en el tópico: ");
-  Serial.println(topic);
+// Umbrales para activar sistemas
+#define TEMP_THRESHOLD 20.0 // Temperatura menor a 20°C activa calefacción
+#define HUMIDITY_THRESHOLD 40.0 // Humedad menor a 40% activa humidificador
 
-  // Imprimir payload CBOR para depuración
-  Serial.print("Payload CBOR: ");
-  for (unsigned int i = 0; i < length; i++) {
-    Serial.printf("%02x ", payload[i]);
-  }
-  Serial.println();
-
-  if (String(topic) != "/datos/resumen") return;
-
+// Función auxiliar para parsear datos CBOR
+void parseCborWeatherData(byte *payload, unsigned int length) {
   CborParser parser;
   CborValue it;
   CborError err = cbor_parser_init(payload, length, 0, &parser, &it);
@@ -151,13 +144,10 @@ void callback(char *topic, byte *payload, unsigned int length) {
   }
 
   while (cbor_value_is_valid(&mapIt) && !cbor_value_at_end(&mapIt)) {
-    // --- Verificar tipo de clave ---
+    // --- Leer clave de localidad ---
     if (!cbor_value_is_text_string(&mapIt)) {
       Serial.println("❌ Se esperaba una clave string (localidad).");
-      // Imprimir tipo de dato para depuración
-      CborType type = cbor_value_get_type(&mapIt);
-      Serial.printf("  ⚠️ Tipo de dato encontrado: %d\n", type);
-      cbor_value_advance(&mapIt); // Avanza para evitar bucle infinito
+      cbor_value_advance(&mapIt);
       continue;
     }
 
@@ -166,7 +156,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
     err = cbor_value_copy_text_string(&mapIt, localidad, &locLen, &mapIt);
     if (err != CborNoError) {
       Serial.printf("❌ Error al leer la clave de localidad: %d\n", err);
-      cbor_value_advance(&mapIt); // Avanza para evitar bucle infinito
+      cbor_value_advance(&mapIt);
       continue;
     }
 
@@ -176,22 +166,27 @@ void callback(char *topic, byte *payload, unsigned int length) {
     // --- Verificar que el valor es un mapa ---
     if (!cbor_value_is_map(&mapIt)) {
       Serial.println("❌ Se esperaba un objeto/mapa como valor de localidad.");
-      cbor_value_advance(&mapIt); // Avanza para evitar bucle infinito
+      cbor_value_advance(&mapIt);
       continue;
     }
 
+    // --- Procesar datos meteorológicos ---
     CborValue dataIt;
     err = cbor_value_enter_container(&mapIt, &dataIt);
     if (err != CborNoError) {
       Serial.printf("❌ Error al entrar al mapa de datos: %d\n", err);
-      cbor_value_advance(&mapIt); // Avanza para evitar bucle infinito
+      cbor_value_advance(&mapIt);
       continue;
     }
+
+    double temperatura = 0.0;
+    double humedad = 0.0;
+    bool has_temp = false, has_humidity = false;
 
     while (cbor_value_is_valid(&dataIt) && !cbor_value_at_end(&dataIt)) {
       if (!cbor_value_is_text_string(&dataIt)) {
         Serial.println("❌ Se esperaba clave de campo tipo string.");
-        cbor_value_advance(&dataIt); // Avanza para evitar bucle infinito
+        cbor_value_advance(&dataIt);
         continue;
       }
 
@@ -200,16 +195,24 @@ void callback(char *topic, byte *payload, unsigned int length) {
       err = cbor_value_copy_text_string(&dataIt, campo, &campoLen, &dataIt);
       if (err != CborNoError) {
         Serial.printf("❌ Error al leer nombre de campo: %d\n", err);
-        cbor_value_advance(&dataIt); // Avanza para evitar bucle infinito
+        cbor_value_advance(&dataIt);
         continue;
       }
 
-      // --- Valor ---
+      // --- Leer valor ---
       if (cbor_value_is_double(&dataIt) || cbor_value_is_float(&dataIt) || cbor_value_is_half_float(&dataIt)) {
         double val;
         err = cbor_value_get_double(&dataIt, &val);
         if (err == CborNoError) {
           Serial.printf("  📈 %s: %.2f\n", campo, val);
+          // Guardar temperatura y humedad para verificación de umbrales
+          if (strcmp(campo, "temperatura") == 0) {
+            temperatura = val;
+            has_temp = true;
+          } else if (strcmp(campo, "humedad") == 0) {
+            humedad = val;
+            has_humidity = true;
+          }
         } else {
           Serial.printf("  ⚠️ Error al leer valor double para %s: %d\n", campo, err);
         }
@@ -223,27 +226,41 @@ void callback(char *topic, byte *payload, unsigned int length) {
         }
       } else {
         Serial.printf("  ⚠️ Campo no reconocido o tipo no soportado: %s\n", campo);
-        // Imprimir tipo de dato para depuración
-        CborType type = cbor_value_get_type(&dataIt);
-        Serial.printf("  ⚠️ Tipo de dato encontrado: %d\n", type);
       }
 
-      cbor_value_advance(&dataIt); // Avanza al próximo campo
+      cbor_value_advance(&dataIt);
     }
 
     err = cbor_value_leave_container(&mapIt, &dataIt);
     if (err != CborNoError) {
       Serial.printf("❌ Error al salir del mapa de datos: %d\n", err);
-      cbor_value_advance(&mapIt); // Avanza para evitar bucle infinito
+      cbor_value_advance(&mapIt);
       continue;
     }
 
-    // No avanzar mapIt aquí; cbor_value_leave_container ya lo posiciona en la siguiente clave
+    // --- Verificar umbrales ---
+    if (has_temp && temperatura < TEMP_THRESHOLD) {
+      Serial.println("🔥 Prendiendo sistema de calefacción");
+    }
+    if (has_humidity && humedad < HUMIDITY_THRESHOLD) {
+      Serial.println("💧 Prendiendo humidificador");
+    }
   }
 
   err = cbor_value_leave_container(&it, &mapIt);
   if (err != CborNoError) {
     Serial.printf("❌ Error al salir del mapa de localidades: %d\n", err);
+  }
+}
+
+// Callback principal
+void callback(char *topic, byte *payload, unsigned int length) {
+  Serial.print("📥 Mensaje recibido en el tópico: ");
+  Serial.println(topic);
+
+  // Filtrar por tópico
+  if (String(topic) == "/datos/resumen") {
+    parseCborWeatherData(payload, length);
   }
 }
 
