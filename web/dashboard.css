@@ -1,0 +1,43 @@
+.dashboard-container {
+    position: relative; 
+    width: 100%;
+    height: 0;         
+    padding-top: 56.25%; 
+
+    margin-top: 2rem;
+    border-radius: 8px;
+    overflow: hidden; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.grafana-iframe {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.cta-container {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.cta-container p {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+footer .back-link {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: color 0.3s ease;
+}
+
+footer .back-link:hover {
+    color: var(--primary-color);
+}
+
